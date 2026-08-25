@@ -1,21 +1,12 @@
-# Instructions
+# IDC6940 Capstone: LSTM Networks on the OpenRCA Dataset
 
-Create a GitHub page for the project
+## Group
 
-## GitHub:
-#### 1. Create a GitHub account and Sign in
-#### 2. Go to [https://github.com/capstone4ds/capstone4ds_template](https://github.com/capstone4ds/capstone4ds_template) and fork (create a copy to your GitHub)
-![fork](fork.png)
-#### 3. Change the name of the repo to *IDC6940_GroupName*
-#### 4. Go to *Settings* -> *Pages* -> under *Branch* -> select *main*
-#### 5. Wait for a few seconds and refresh the page. You see the link of the page. 
+- Duc Nguyen
+- Cameron Ball
+- Luis Madrigal
 
-## RStudio:
-#### 1. Go to RStudio
-#### 2. Create a Version Control Project and Clone the repo.
-#### 3. Commit and push to see changes on the website et Voilà!
+## About
 
-More information:
-- [GitHub](https://happygitwithr.com/index.html)
-- [Video1 RStudio connection to GitHub](https://www.youtube.com/watch?v=MdmnE3AnkQE)
-- [Video2 RStudio connection to GitHub](https://www.youtube.com/watch?v=jN6tvgt3GK8)
+Our group is studying Long Short-Term Memory (LSTM) networks applied to the
+OpenRCA dataset as part of our IDC6940 Capstone Project in Data Science.
