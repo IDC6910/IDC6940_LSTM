@@ -2,3 +2,20 @@
 .Rhistory
 .RData
 .Ruserdata
+# regenerable from run_pipeline.py / make_synthetic_fixture.py
+dataset/
+processed/
+artifacts/
+*.npz
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# OS/editor cruft
+.DS_Store
+.vscode/
+.idea/
