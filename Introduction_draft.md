@@ -1,0 +1,5 @@
+## Draft Introduction
+
+Modern software systems generate large amounts of telemetry data, including performance metrics, logs, and other operational signals. This information may contain early warning signs of system failures; however, detecting those signs can be challenging, especially in complex systems. Improving failure prediction can help organizations respond earlier, reduce system downtime and associated costs, and improve overall system reliability.
+
+This project will use Microsoft's OpenRCA dataset to investigate whether Long Short-Term Memory (LSTM) neural networks can predict impending software-system failures from system telemetry. Because LSTMs are designed to learn patterns over time, they may be useful for detecting changes in telemetry data that occur before a system failure. We will evaluate how accurately failures can be predicted at different time horizons and whether combining multiple telemetry sources improves prediction performance compared with using a single source. Overall, this project applies machine learning to a practical software reliability problem by testing the effectiveness of telemetry data for early failure detection.
