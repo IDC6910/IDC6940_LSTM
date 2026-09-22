@@ -1,7 +1,7 @@
 ---
 title: "Present a great story for data science projects"
 subtitle: "This is a Slide Template"
-author: "Students names (Advisor: Dr. Cohen)"
+author: "Duc Nguyen, Cameron Ball, Luis Madrigal (Advisor: Dr. Cohen)"
 date: '`r Sys.Date()`'
 format:
   revealjs

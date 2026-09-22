@@ -1,7 +1,7 @@
 ---
-title: "Writing a great story for data science projects "
-subtitle: "This is a Report Template Quarto"
-author: "Student Name (Advisor: Dr. Cohen)"
+title: "How effectively can LSTM networks predict impending software-system failures from multivariate telemetry"
+subtitle: "This is the capstone project of IDC6910 class"
+author: "Duc Nguyen, Cameron Ball, Luis Madrigal (Advisor: Dr. Cohen)"
 date: '`r Sys.Date()`'
 format:
   html:
@@ -21,52 +21,25 @@ editor:
 Slides: [slides.html](slides.html){target="_blank"} ( Go to `slides.qmd`
 to edit)
 
-::: callout-important
-**Remember:** Your goal is to make your audience understand and care
-about your findings. By crafting a compelling story, you can effectively
-communicate the value of your data science project.
-
-Carefully read this template since it has instructions and tips to
-writing!
-
-Nice report! I am adding this to show updates from RStudio.
-:::
-
 ## Introduction
 
-The introduction should:
+Modern software systems generate large amounts of telemetry data, including
+performance metrics, logs, and other operational signals. This information may
+contain early warning signs of system failures; however, detecting those signs
+can be challenging, especially in complex systems. Improving failure prediction
+can help organizations respond earlier, reduce system downtime and associated
+costs, and improve overall system reliability.
 
--   Develop a storyline that captures attention and maintains interest.
-
--   Your audience is your peers
-
--   Clearly state the problem or question you're addressing.
-
-<!-- -->
-
--   Introduce why it is relevant needs.
-
--   Provide an overview of your approach.
-
-Example of writing including citing references:
-
-*This is an introduction to ..... regression, which is a non-parametric
-estimator that estimates the conditional expectation of two variables
-which is random. The goal of a kernel regression is to discover the
-non-linear relationship between two random variables. To discover the
-non-linear relationship, kernel estimator or kernel smoothing is the
-main method to estimate the curve for non-parametric statistics. In
-kernel estimator, weight function is known as kernel function
-[@efr2008]. Cite this paper [@bro2014principal]. The GEE [@wang2014].
-The PCA [@daffertshofer2004pca]*. Topology can be used in machine 
-learning [@adams2021topology]
-
-For Symbolic Regression [@wang2019symbolic] *This is my work and I want
-to add more work...*
-
-Cite new paper [@su2012linear]
-
-Classification of Knee OA was studied here [@guida2021knee]. This is another example of LCA [@weller2020latent]
+This project will use Microsoft's OpenRCA dataset [@xu2025openrca] to
+investigate whether Long Short-Term Memory (LSTM) neural networks can predict
+impending software-system failures from system telemetry. Because LSTMs are
+designed to learn patterns over time, they may be useful for detecting changes
+in telemetry data that occur before a system failure. We will evaluate how
+accurately failures can be predicted at different time horizons and whether
+combining multiple telemetry sources improves prediction performance compared
+with using a single source. Overall, this project applies machine learning to a
+practical software reliability problem by testing the effectiveness of telemetry
+data for early failure detection.
 
 ## Methods
 
