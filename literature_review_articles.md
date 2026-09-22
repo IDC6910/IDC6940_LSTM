@@ -40,7 +40,7 @@ LogLS detects anomalies in system logs by treating the log as a natural-language
 
 ### Article 3
 
-Source: https://arxiv.org/html/2407.00048v1Links to an external site.
+Source: https://arxiv.org/html/2407.00048v1
 
 This paper identifies system anomalies on end user's computers by collecting data in the form of telemetry, where an LSTM autoencoder is used as a feature encoder to feed three different classical anomaly detectors including isolation forest, one class support vector machine, and local outlier factor algorithm. An LSTM encoder is utilized for encoding the collected telemetry data, which are then processed by the classical model to identify any outliers.
 
@@ -54,7 +54,7 @@ Aggressive information loss in preprocessing. Collapsing a day of 5-second sampl
 
 ### Article 4
 
-Source: https://arxiv.org/pdf/1503.04069Links to an external site.
+Source: https://arxiv.org/pdf/1503.04069
 
 Ablation Study of the LSTM Architecture Itself. In this study, the authors use the basic LSTM as a starting point and then perform an ablation study of 8 variants of this architecture, with each variant having only one difference from the starting point. The study was performed on three different domains: speech recognition, handwriting recognition, and polyphonic music modeling.
 
