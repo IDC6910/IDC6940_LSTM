@@ -41,6 +41,26 @@ with using a single source. Overall, this project applies machine learning to a
 practical software reliability problem by testing the effectiveness of telemetry
 data for early failure detection.
 
+Previous research is supportive of using LSTM models in the analysis of sequential data.
+[@Gonzalez2018] showed that LSTM networks can be used in modeling nonlinear systems,
+while [@ErgenKozat2020] used LSTM-based methods for anomaly detection in data sequences
+with variable length. Other studies applied LSTMs to telemetry data obtained from computer
+systems. [@MudgalWouhaybi2024] used a combined LSTM encoder in anomaly detection methods;
+these include Isolation Forest, used to identify PC system failures from CPU, memory, disk,
+temperature, and system data. This study obtained results that suggested LSTM-based telemetry
+analysis can provide useful results for system-failure detection.
+
+System log research also shows how important sequential modeling can be in failure-related
+tasks. [@Chen2022] used two LSTM networks in the analysis of events before and after a log
+entry; this improved anomaly detection in long log sequences. In addition, [@Hadadi2024]
+researched deep learning for log-based failure prediction and found that model performance is
+dependent on how log data are represented and transformed into sequences. The OpenRCA dataset
+will be particularly useful in this project as it contains real failure case data from enterprise
+systems, with multiple sources of telemetry, such as logs, metrics, and traces [@Xu2025].
+While the prior work mentioned mainly focused on anomaly detection or cause analysis, this
+project will be more focused on predicting failures before they occur and testing the efficacy
+of multiple telemetry sources in improving early failure prediction performance.
+
 ## Methods
 
 -   Detail the models or algorithms used.
