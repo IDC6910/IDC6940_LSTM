@@ -2301,7 +2301,7 @@ vertical-align: -.125em;
 </table>
 <p><strong>Telemetry.</strong> Each day folder holds metric CSVs that record a timestamp, a component and a KPI (key performance indicator, such as CPU use). Bank timestamps are in seconds and Telecom timestamps are in milliseconds. Logs and traces are also available but are out of scope.</p>
 <p><strong>Ground truth.</strong> Each system has a <code>record.csv</code> that lists every injected fault with its onset time, component and fault type. It gives no duration.</p>
-<p><strong>Processing (Stage 1, <code>build_dataset.py</code>):</strong></p>
+<p><strong>Processing:</strong></p>
 <ol type="1">
 <li>Pivot each day into a wide table of minute × <code>component‖kpi</code> on an exact 1-minute grid. Telecom features are keyed <code>component‖family.kpi</code> because some KPI names repeat across metric families.</li>
 <li>Keep only series that appear on every day. Bank’s <code>dockerA1/A2/B1/B2</code> containers mostly disappear by 03-24, which removes 248 series. Telecom loses 430 series this way.</li>
@@ -2314,7 +2314,7 @@ vertical-align: -.125em;
 <li><strong>Blackout.</strong> The 10 minutes after each fault onset are excluded from the negative examples, so a model is never credited for detecting a fault that has already started.</li>
 <li><strong>Window completeness.</strong> A minute is only used if its 60-minute look-back and its H-minute look-ahead both fall inside the same day. Because the days are not consecutive, a window would otherwise join 03-12 directly to 03-23.</li>
 </ul>
-<p><strong>Timezone.</strong> All OpenRCA timestamps are UTC+8. We join data only on raw epoch values and show times only in UTC+8. <code>verify_stage1.py</code> checks that this reproduces the <code>datetime</code> column of <code>record.csv</code> for all 136 Bank faults. Rendering in local US time would shift every label by 14 hours.</p>
+<p><strong>Timezone.</strong> All OpenRCA timestamps are UTC+8. We join data only on raw epoch values and show times only in UTC+8. Rendering in local US time would shift every label by 14 hours.</p>
 </section>
 <section id="initial-findings" class="level4">
 <h4 class="anchored" data-anchor-id="initial-findings">Initial findings</h4>

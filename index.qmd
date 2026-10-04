@@ -88,7 +88,7 @@ The data comes from **OpenRCA**, a public root-cause-analysis benchmark of micro
 
 **Ground truth.** Each system has a `record.csv` that lists every injected fault with its onset time, component and fault type. It gives no duration.
 
-**Processing (Stage 1, `build_dataset.py`):**
+**Processing:**
 
 1. Pivot each day into a wide table of minute × `component‖kpi` on an exact 1-minute grid. Telecom features are keyed `component‖family.kpi` because some KPI names repeat across metric families.
 2. Keep only series that appear on every day. Bank's `dockerA1/A2/B1/B2` containers mostly disappear by 03-24, which removes 248 series. Telecom loses 430 series this way.
@@ -101,7 +101,7 @@ The data comes from **OpenRCA**, a public root-cause-analysis benchmark of micro
 - **Blackout.** The 10 minutes after each fault onset are excluded from the negative examples, so a model is never credited for detecting a fault that has already started.
 - **Window completeness.** A minute is only used if its 60-minute look-back and its H-minute look-ahead both fall inside the same day. Because the days are not consecutive, a window would otherwise join 03-12 directly to 03-23.
 
-**Timezone.** All OpenRCA timestamps are UTC+8. We join data only on raw epoch values and show times only in UTC+8. `verify_stage1.py` checks that this reproduces the `datetime` column of `record.csv` for all 136 Bank faults. Rendering in local US time would shift every label by 14 hours.
+**Timezone.** All OpenRCA timestamps are UTC+8. We join data only on raw epoch values and show times only in UTC+8. Rendering in local US time would shift every label by 14 hours.
 
 #### Initial findings
 
