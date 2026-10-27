@@ -186,13 +186,56 @@ All splits are grouped by day, so minutes from the same day never appear in both
 
 ### Modeling and Results
 
--   Explain your data preprocessing and cleaning steps.
+### Data Splitting
 
--   Present your key findings in a clear and concise manner.
+Adjacent minutes are very similar, so randomly splitting individual minutes could put nearly identical observations in the training and test sets. To avoid this, all splits are grouped by day.
 
--   Use visuals to support your claims.
+- **Chronological split (primary for deployment realism).** Train on the earliest days, validate on the next day, and test on the latest approximately 30% of days. This reflects how a model might be used in practice and captures a real distribution shift: several containers present in the earlier Bank days are absent from the test period.
+- **Leave-two-days-out cross-validation (primary for statistical power).** Each fold holds out two days for testing (5 folds for Bank, 8 for Telecom). The last remaining day serves as the validation set. We pool out-of-fold predictions across folds before calculating PR-AUC because some Telecom folds contain few or no fault events. Folds with no events are reported using their false-alarm rate only. **[Planned]**
 
--   **Tell a story about what the data reveals.**
+### Windowing, Scaling, and Feature Selection
+
+We fit all preprocessing steps using only the training days in each fold:
+
+- **Scaling.** We standardize each feature using the training median and interquartile range. These measures are robust to the heavy-tailed distributions common in KPI data. We then clip values to ±10.
+- **Feature selection.** We retain the *k* features with the highest ANOVA F-statistic against the training labels (*k* = 128 in the standard configuration). Selecting features within each fold prevents test labels from influencing which features are used.
+- **Windows.** Each sample is a tensor of shape $L \times k$, covering minutes $[t - L + 1, t]$, with $L = 60$ by default.
+- **Class imbalance.** We keep all positive training windows and subsample negatives to a 5:1 ratio in the standard configuration. Validation and test sets are never subsampled.
+
+### Models
+
+Models that use telemetry receive the same input windows. Tabular models use six summary statistics for each feature: mean, standard deviation, minimum, maximum, last value, and least-squares slope. Sequence models use the full window.
+
+| # | Model | Input | Role |
+|---|---|---|---|
+| 1 | **Prior** — constant training base rate | None | Floor: any useful model should exceed it |
+| 2 | **Time-of-day** — logistic regression on sine and cosine of minute of day | Clock only | Control for daily rhythm, especially at long horizons |
+| 3 | **Logistic regression** (L2, class-balanced) | Window statistics | Linear classical baseline |
+| 4 | **Random forest** (class-balanced) **[planned]** | Window statistics | Bagged-tree classical baseline |
+| 5 | **Gradient boosting** (XGBoost, `scale_pos_weight`) | Window statistics | Strong classical baseline on tabular data |
+| 6 | **1D-CNN** (two convolution layers, global max pooling) | Raw window | Tests for local temporal patterns without recurrence |
+| 7 | **LSTM** (hidden size 64, dropout 0.2, last hidden state → linear head) | Raw window | Model under test |
+| 8 | **GRU** (same configuration as the LSTM) **[planned]** | Raw window | Tests whether the LSTM’s gating structure is needed |
+| 9 | **BiLSTM with attention** | Raw window | Tests whether bidirectional context with learned weighting adds value |
+
+**LSTM.** An LSTM [@Hochreiter1997] maintains a cell state $c_t$, controlled by input, forget, and output gates:
+
+$$
+\begin{aligned}
+i_t &= \sigma(W_i x_t + U_i h_{t-1} + b_i), &
+f_t &= \sigma(W_f x_t + U_f h_{t-1} + b_f), &
+o_t &= \sigma(W_o x_t + U_o h_{t-1} + b_o),\\
+\tilde{c}_t &= \tanh(W_c x_t + U_c h_{t-1} + b_c), &
+c_t &= f_t \odot c_{t-1} + i_t \odot \tilde{c}_t, &
+h_t &= o_t \odot \tanh(c_t).
+\end{aligned}
+$$
+
+The final hidden state $h_t$ passes through dropout and a linear layer to produce a failure logit. The gates allow the network to retain or discard information across the 60-minute window. This lets us test whether the order of observations provides predictive information beyond the summary statistics. The GRU and BiLSTM-with-attention models test the contributions of gating design and bidirectional context, respectively. Prior comparisons of LSTM variants found that many perform similarly, making the GRU a useful control [@Greff2017].
+
+**Training of neural models.** Neural models use Adam with a learning rate of $10^{-3}$, weight decay of $10^{-5}$, a batch size of 128, and binary cross-entropy. The positive-class weight is set equal to the negative-to-positive ratio. Training uses gradient clipping with a norm of 5, up to 15 epochs (25 in the full configuration), and early stopping with a patience of 4 based on validation PR-AUC. The best validation checkpoint is restored before testing.
+
+**Hyperparameter tuning [planned].** Each model family will receive the same budget of 20 random-search trials. Trials will be selected using validation PR-AUC at $H = 5$ in the chronological split. The selected configuration will then be fixed across horizons and folds. The equal budget helps make performance comparisons fair. Neural models will be trained with three random seeds, and results will be reported as the mean and standard deviation.
 
 ```{r}
 
