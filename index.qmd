@@ -588,4 +588,17 @@ Three points stand out:
   other belong to the same fault and are not independent. Bank has 136 fault events
   and Telecom only 51, so Telecom results will be less certain.
 
+@fig-overview summarises each system: faults per day, faults by injected reason,
+the share of missing minutes per series before and after gap-filling, and the
+positive rate at each prediction horizon.
+
+::: {#fig-overview layout-ncol=1}
+
+![Bank dataset overview](figures/bank_01_dataset_overview.png){#fig-overview-bank width="100%"}
+
+![Telecom dataset overview](figures/telecom_01_dataset_overview.png){#fig-overview-telecom width="100%"}
+
+Per-system overview of the Bank and Telecom datasets.
+:::
+
 ## References
