@@ -2691,91 +2691,6 @@ Table 1: Default LSTM configuration.
 </figure>
 </div>
 </section>
-<section id="assumptions" class="level3">
-<h3 class="anchored" data-anchor-id="assumptions">Assumptions</h3>
-<p>An LSTM is not a statistical model in the classical sense, so it does not carry distributional assumptions such as normal residuals. Using it for failure prediction does, however, rest on several assumptions about the data:</p>
-<ol type="1">
-<li><strong>Failures have precursors inside the look-back window.</strong> The model can only predict a failure if the telemetry changes in some detectable way within the <span class="math inline">\(L\)</span> minutes before it. If a fault arrives with no warning, no model can predict it.</li>
-<li><strong>Order matters.</strong> The LSTM is worth its extra complexity only if the <em>sequence</em> of readings carries information beyond simple summaries such as the mean or maximum of the window.</li>
-<li><strong>The system behaves the same way in training and testing.</strong> The model assumes that the relationship between telemetry and failures does not change between the days it learns from and the days it is tested on. Components that appear or disappear over time violate this.</li>
-<li><strong>Inputs are on a regular grid and on comparable scales.</strong> <a href="#eq-lstm" class="quarto-xref">Equation 3</a> treats every step as one fixed unit of time, and the sigmoid and tanh functions saturate for large inputs. Telemetry must therefore be resampled to a fixed interval, gaps filled, and features scaled.</li>
-<li><strong>Training examples are not independent.</strong> Windows for neighbouring minutes overlap by 59 of their 60 minutes. Treating them as independent samples when splitting the data would leak information from training into testing.</li>
-</ol>
-<p>We address these as follows: assumption 4 through the preprocessing described below; assumption 5 by splitting data by whole days; and assumption 3 by testing on later days than those used for training, so that any drift appears in the results rather than being hidden. Assumptions 1 and 2 are what this study tests.</p>
-</section>
-<section id="data-structure" class="level3">
-<h3 class="anchored" data-anchor-id="data-structure">Data Structure</h3>
-<p>An LSTM needs a three-dimensional input tensor of shape</p>
-<p><span class="math display">\[
-\underbrace{N}_{\text{windows}} \times \underbrace{L}_{\text{minutes}} \times \underbrace{k}_{\text{features}},
-\]</span></p>
-<p>and a label vector <span class="math inline">\(y\)</span> of length <span class="math inline">\(N\)</span>. Each window is one <span class="math inline">\(L \times k\)</span> matrix — a slice of a wide table with one row per minute and one column per telemetry series.</p>
-<p>The data come from OpenRCA <span class="citation" data-cites="xu2025openrca">(<a href="#ref-xu2025openrca" role="doc-biblioref">Xu et al. 2025a</a>)</span>, a benchmark of microservice systems with injected faults. Each day of data contains metric files that record a timestamp, a component and a key performance indicator (KPI) such as CPU use, and a <code>record.csv</code> file lists the start time, component and type of every injected fault. We use the metric telemetry from two systems, Bank and Telecom. Logs and traces are outside the scope of this study.</p>
-<p>The raw telemetry is converted into LSTM input in the following steps:</p>
-<ol type="1">
-<li><strong>Pivot to a wide table.</strong> Each day becomes a table on an exact 1-minute grid, with one column per <code>component‖KPI</code> pair.</li>
-<li><strong>Clean the columns.</strong> Keep only series present on every day and drop any series that is more than 80 % missing.</li>
-<li><strong>Fill short gaps.</strong> Forward-fill missing values within a day, up to twice the series’ own sampling interval.</li>
-<li><strong>Label each minute.</strong> For a prediction horizon <span class="math inline">\(H\)</span>, <span class="math inline">\(y_{t,H} = 1\)</span> if any fault starts in the interval <span class="math inline">\((t,\, t+H]\)</span>, and 0 otherwise. We study <span class="math inline">\(H \in \{1, 3, 5, 10, 15, 30\}\)</span> minutes.</li>
-<li><strong>Apply two rules so the model is not given credit it does not deserve.</strong>
-<ul>
-<li><em>Blackout:</em> the 10 minutes after a fault starts are removed from the negative examples, so the model is never rewarded for noticing a fault that has already begun.</li>
-<li><em>Window completeness:</em> a minute is used only if its full 60-minute look-back and its <span class="math inline">\(H\)</span>-minute look-ahead fall on the same day, because the recorded days are not consecutive.</li>
-</ul></li>
-<li><strong>Scale.</strong> Each feature is centred on its median and divided by its interquartile range, which are robust to the heavy tails common in KPI data, then clipped to <span class="math inline">\(\pm 10\)</span>.</li>
-<li><strong>Select features.</strong> Keep the <span class="math inline">\(k = 128\)</span> features with the highest ANOVA <span class="math inline">\(F\)</span>-statistic against the training labels.</li>
-<li><strong>Balance the classes.</strong> Keep every positive training window and randomly sample negatives at a 5:1 ratio. Validation and test sets are never resampled.</li>
-</ol>
-<p>Steps 6–8 use <strong>training days only</strong>, so no information from the test days leaks into the model.</p>
-</section>
-<section id="implementation-in-python" class="level3">
-<h3 class="anchored" data-anchor-id="implementation-in-python">Implementation in Python</h3>
-<p>The model is implemented in Python using the following packages:</p>
-<ul>
-<li><strong>PyTorch</strong> <span class="citation" data-cites="Paszke2019">(<a href="#ref-Paszke2019" role="doc-biblioref">Paszke et al. 2019</a>)</span>: defines the LSTM, computes gradients and trains the model.</li>
-<li><strong>NumPy</strong> and <strong>pandas</strong>: build the minute-level tables and the window tensors.</li>
-<li><strong>scikit-learn</strong>: ANOVA <span class="math inline">\(F\)</span>-test feature selection and evaluation metrics.</li>
-<li><strong>Matplotlib</strong>: figures.</li>
-</ul>
-<p>The network corresponds directly to <a href="#eq-lstm" class="quarto-xref">Equation 3</a> and <a href="#eq-head" class="quarto-xref">Equation 4</a>. <code>nn.LSTM</code> implements the cell equations; we take the hidden state at the last time step and pass it through dropout and a linear layer:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> LSTMNet(nn.Module):</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_features, hidden<span class="op">=</span><span class="dv">64</span>, layers<span class="op">=</span><span class="dv">1</span>, p<span class="op">=</span><span class="fl">0.2</span>):</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rnn <span class="op">=</span> nn.LSTM(n_features, hidden, layers, batch_first<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.drop <span class="op">=</span> nn.Dropout(p)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.head <span class="op">=</span> nn.Linear(hidden, <span class="dv">1</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):                <span class="co"># x: (batch, L, k)</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        out, _ <span class="op">=</span> <span class="va">self</span>.rnn(x)             <span class="co"># out: (batch, L, hidden)</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        h_last <span class="op">=</span> out[:, <span class="op">-</span><span class="dv">1</span>, :]           <span class="co"># final hidden state h_t</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.head(<span class="va">self</span>.drop(h_last)).squeeze(<span class="op">-</span><span class="dv">1</span>)   <span class="co"># logit</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The sigmoid in <a href="#eq-head" class="quarto-xref">Equation 4</a> is folded into the loss for numerical stability (<code>nn.BCEWithLogitsLoss</code> with <code>pos_weight</code> <span class="math inline">\(= w_{+}\)</span>). The training loop follows the procedure in the Parameter Estimation section:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>loss_fn <span class="op">=</span> nn.BCEWithLogitsLoss(pos_weight<span class="op">=</span>w_pos)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>opt <span class="op">=</span> torch.optim.Adam(model.parameters(), lr<span class="op">=</span><span class="fl">1e-3</span>, weight_decay<span class="op">=</span><span class="fl">1e-5</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(max_epochs):</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    model.train()</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> xb, yb <span class="kw">in</span> train_loader:</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        opt.zero_grad()</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> loss_fn(model(xb), yb)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        loss.backward()                                   <span class="co"># backpropagation through time</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        nn.utils.clip_grad_norm_(model.parameters(), <span class="fl">5.0</span>) <span class="co"># gradient clipping</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        opt.step()</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> pr_auc(y_val, predict(model, X_val))          <span class="co"># early stopping on validation</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># keep the best weights; stop after 4 epochs without improvement</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="evaluation-design" class="level3">
-<h3 class="anchored" data-anchor-id="evaluation-design">Evaluation Design</h3>
-<p><strong>Splitting by day.</strong> Neighbouring minutes are almost identical, so randomly splitting individual minutes would place near-duplicate windows in both training and test sets. All splits are therefore made by whole day:</p>
-<ul>
-<li><em>Chronological split:</em> train on the earliest days, validate on the next day, and test on the latest days (about 30 %). This mirrors how the model would be deployed.</li>
-<li><em>Leave-two-days-out cross-validation:</em> each fold holds out two days for testing, giving more test events in total.</li>
-</ul>
-<p><strong>Metrics.</strong> Because only about 1 % of minutes precede a fault at <span class="math inline">\(H = 1\)</span>, accuracy is not informative: a model that never predicts a failure would be 99 % accurate. The main metric is the <strong>area under the precision–recall curve (PR-AUC)</strong>, which focuses on how well the rare positive class is found <span class="citation" data-cites="Saito2015">(<a href="#ref-Saito2015" role="doc-biblioref">Saito and Rehmsmeier 2015</a>)</span>. It is always reported next to the base rate (the PR-AUC of a model that guesses at random). We also report <strong>event recall</strong> — the share of faults that receive at least one alarm before they start — and <strong>lead time</strong>, how many minutes before the fault the first alarm occurs.</p>
-<p><strong>Uncertainty.</strong> The real sample size is the number of faults (136 for Bank, 51 for Telecom), not the number of minutes. Confidence intervals are therefore computed by bootstrapping over fault events rather than over minutes.</p>
-</section>
 </section>
 <section id="analysis-and-results" class="level2">
 <h2 class="anchored" data-anchor-id="analysis-and-results">Analysis and Results</h2>
@@ -2958,36 +2873,36 @@ Table 4: Layouts of the metric files.
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loading packages</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loading packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>The fault records are small and are loaded directly. Start times are converted from epoch seconds to UTC+8 date-times.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>read_record <span class="ot">&lt;-</span> <span class="cf">function</span>(path, system) {</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(path, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">system    =</span> system,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>              level,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>              component,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>              reason,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">timestamp =</span> <span class="fu">as.numeric</span>(timestamp),</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">onset     =</span> <span class="fu">as.POSIXct</span>(timestamp, <span class="at">origin =</span> <span class="st">&quot;1970-01-01&quot;</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">tz =</span> <span class="st">&quot;Asia/Shanghai&quot;</span>))   <span class="co"># UTC+8</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>faults <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_record</span>(<span class="st">&quot;data/bank_record.csv&quot;</span>,    <span class="st">&quot;Bank&quot;</span>),</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_record</span>(<span class="st">&quot;data/telecom_record.csv&quot;</span>, <span class="st">&quot;Telecom&quot;</span>)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>faults <span class="sc">|&gt;</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(system) <span class="sc">|&gt;</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(system, level, component, reason, onset) <span class="sc">|&gt;</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">&quot;First three faults in each system&#39;s record.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>read_record <span class="ot">&lt;-</span> <span class="cf">function</span>(path, system) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_csv</span>(path, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">system    =</span> system,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>              level,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>              component,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>              reason,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">timestamp =</span> <span class="fu">as.numeric</span>(timestamp),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">onset     =</span> <span class="fu">as.POSIXct</span>(timestamp, <span class="at">origin =</span> <span class="st">&quot;1970-01-01&quot;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">tz =</span> <span class="st">&quot;Asia/Shanghai&quot;</span>))   <span class="co"># UTC+8</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>faults <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_record</span>(<span class="st">&quot;data/bank_record.csv&quot;</span>,    <span class="st">&quot;Bank&quot;</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_record</span>(<span class="st">&quot;data/telecom_record.csv&quot;</span>, <span class="st">&quot;Telecom&quot;</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>faults <span class="sc">|&gt;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(system) <span class="sc">|&gt;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(system, level, component, reason, onset) <span class="sc">|&gt;</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">&quot;First three faults in each system&#39;s record.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -3058,12 +2973,12 @@ Table 4: Layouts of the metric files.
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>faults <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(system, reason, <span class="at">name =</span> <span class="st">&quot;faults&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(system) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> scales<span class="sc">::</span><span class="fu">percent</span>(faults <span class="sc">/</span> <span class="fu">sum</span>(faults), <span class="at">accuracy =</span> <span class="dv">1</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(system, <span class="fu">desc</span>(faults)) <span class="sc">|&gt;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">&quot;Injected fault types by system.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>faults <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(system, reason, <span class="at">name =</span> <span class="st">&quot;faults&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(system) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> scales<span class="sc">::</span><span class="fu">percent</span>(faults <span class="sc">/</span> <span class="fu">sum</span>(faults), <span class="at">accuracy =</span> <span class="dv">1</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(system, <span class="fu">desc</span>(faults)) <span class="sc">|&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">&quot;Injected fault types by system.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -3163,15 +3078,15 @@ Table 4: Layouts of the metric files.
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>faults <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">day =</span> <span class="fu">as.Date</span>(onset, <span class="at">tz =</span> <span class="st">&quot;Asia/Shanghai&quot;</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(system, day, <span class="at">name =</span> <span class="st">&quot;faults&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(system) <span class="sc">|&gt;</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">days_with_faults =</span> <span class="fu">n</span>(),</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">min_per_day      =</span> <span class="fu">min</span>(faults),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">max_per_day      =</span> <span class="fu">max</span>(faults),</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">total            =</span> <span class="fu">sum</span>(faults)) <span class="sc">|&gt;</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">&quot;Faults per day.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>faults <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">day =</span> <span class="fu">as.Date</span>(onset, <span class="at">tz =</span> <span class="st">&quot;Asia/Shanghai&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(system, day, <span class="at">name =</span> <span class="st">&quot;faults&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(system) <span class="sc">|&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">days_with_faults =</span> <span class="fu">n</span>(),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">min_per_day      =</span> <span class="fu">min</span>(faults),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">max_per_day      =</span> <span class="fu">max</span>(faults),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">total            =</span> <span class="fu">sum</span>(faults)) <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">&quot;Faults per day.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -3206,23 +3121,23 @@ Table 4: Layouts of the metric files.
 </div>
 <p>Bank has faults on 9 of its 10 days and Telecom on 11 of its 15 days. The days with telemetry but <strong>no recorded faults</strong> (Bank 2021-03-05; Telecom 2020-04-20 to 2020-04-23) are kept in the data as fault-free periods.</p>
 <p>The metric telemetry is much larger — about 16 GB for Telecom and roughly 90 MB per day for Bank — so it is not stored in this repository. It is read day by day in Python with pandas. The function below reads one metric file and turns it into a table with one row per minute and one column per <code>component‖KPI</code> series; the long and wide layouts in <a href="#tbl-metric-layout" class="quarto-xref">Table 4</a> are handled separately:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_source(day_dir, src, grid):</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Read one metric file into a minute x feature table (&#39;component||kpi&#39;).&quot;&quot;&quot;</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> src.kind <span class="op">==</span> <span class="st">&quot;long&quot;</span>:</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> pd.read_csv(day_dir <span class="op">/</span> src.path,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                         usecols<span class="op">=</span>[src.ts_col, src.id_col, src.kpi_col, src.val_col])</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">&quot;minute&quot;</span>] <span class="op">=</span> to_minute(df[src.ts_col], src.ts_unit)   <span class="co"># s or ms -&gt; minute</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">&quot;feature&quot;</span>] <span class="op">=</span> df[src.id_col] <span class="op">+</span> <span class="st">&quot;||&quot;</span> <span class="op">+</span> df[src.kpi_col]</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        wide <span class="op">=</span> df.pivot_table(index<span class="op">=</span><span class="st">&quot;minute&quot;</span>, columns<span class="op">=</span><span class="st">&quot;feature&quot;</span>,</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                              values<span class="op">=</span>src.val_col, aggfunc<span class="op">=</span><span class="st">&quot;mean&quot;</span>)</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:  <span class="co"># wide layout (metric_app.csv)</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> pd.read_csv(day_dir <span class="op">/</span> src.path)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">&quot;minute&quot;</span>] <span class="op">=</span> to_minute(df[src.ts_col], src.ts_unit)</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>        wide <span class="op">=</span> pd.concat([df.pivot_table(index<span class="op">=</span><span class="st">&quot;minute&quot;</span>, columns<span class="op">=</span>src.id_col,</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                                         values<span class="op">=</span>v, aggfunc<span class="op">=</span><span class="st">&quot;mean&quot;</span>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                            .add_prefix(<span class="st">&quot;app||&quot;</span>).add_suffix(<span class="st">&quot;.&quot;</span> <span class="op">+</span> v)</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> v <span class="kw">in</span> src.value_cols], axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> wide.reindex(grid)          <span class="co"># exact 1-minute grid for that day</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_source(day_dir, src, grid):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Read one metric file into a minute x feature table (&#39;component||kpi&#39;).&quot;&quot;&quot;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> src.kind <span class="op">==</span> <span class="st">&quot;long&quot;</span>:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> pd.read_csv(day_dir <span class="op">/</span> src.path,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                         usecols<span class="op">=</span>[src.ts_col, src.id_col, src.kpi_col, src.val_col])</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">&quot;minute&quot;</span>] <span class="op">=</span> to_minute(df[src.ts_col], src.ts_unit)   <span class="co"># s or ms -&gt; minute</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">&quot;feature&quot;</span>] <span class="op">=</span> df[src.id_col] <span class="op">+</span> <span class="st">&quot;||&quot;</span> <span class="op">+</span> df[src.kpi_col]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        wide <span class="op">=</span> df.pivot_table(index<span class="op">=</span><span class="st">&quot;minute&quot;</span>, columns<span class="op">=</span><span class="st">&quot;feature&quot;</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                              values<span class="op">=</span>src.val_col, aggfunc<span class="op">=</span><span class="st">&quot;mean&quot;</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:  <span class="co"># wide layout (metric_app.csv)</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> pd.read_csv(day_dir <span class="op">/</span> src.path)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">&quot;minute&quot;</span>] <span class="op">=</span> to_minute(df[src.ts_col], src.ts_unit)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        wide <span class="op">=</span> pd.concat([df.pivot_table(index<span class="op">=</span><span class="st">&quot;minute&quot;</span>, columns<span class="op">=</span>src.id_col,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                                         values<span class="op">=</span>v, aggfunc<span class="op">=</span><span class="st">&quot;mean&quot;</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                            .add_prefix(<span class="st">&quot;app||&quot;</span>).add_suffix(<span class="st">&quot;.&quot;</span> <span class="op">+</span> v)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                          <span class="cf">for</span> v <span class="kw">in</span> src.value_cols], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> wide.reindex(grid)          <span class="co"># exact 1-minute grid for that day</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Running this for every metric file and every day produces the raw feature tables:</p>
 <div id="tbl-raw" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -3462,12 +3377,6 @@ Mudgal, Priyanka, and Rita H. Wouhaybi. 2024. <span>“Ensemble Method for Syste
 </div>
 <div id="ref-Pascanu2013" class="csl-entry" role="listitem">
 Pascanu, Razvan, Tomas Mikolov, and Yoshua Bengio. 2013. <span>“On the Difficulty of Training Recurrent Neural Networks.”</span> In <em>Proceedings of the 30th International Conference on Machine Learning (ICML)</em>, 28:1310–18. PMLR 3.
-</div>
-<div id="ref-Paszke2019" class="csl-entry" role="listitem">
-Paszke, Adam, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, et al. 2019. <span>“<span>PyTorch</span>: An Imperative Style, High-Performance Deep Learning Library.”</span> In <em>Advances in Neural Information Processing Systems 32 (NeurIPS)</em>, 8024–35.
-</div>
-<div id="ref-Saito2015" class="csl-entry" role="listitem">
-Saito, Takaya, and Marc Rehmsmeier. 2015. <span>“The Precision-Recall Plot Is More Informative Than the <span>ROC</span> Plot When Evaluating Binary Classifiers on Imbalanced Datasets.”</span> <em>PLoS ONE</em> 10 (3): e0118432. <a href="https://doi.org/10.1371/journal.pone.0118432">https://doi.org/10.1371/journal.pone.0118432</a>.
 </div>
 <div id="ref-Srivastava2014" class="csl-entry" role="listitem">
 Srivastava, Nitish, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. 2014. <span>“Dropout: A Simple Way to Prevent Neural Networks from Overfitting.”</span> <em>Journal of Machine Learning Research</em> 15 (56): 1929–58.
