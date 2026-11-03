@@ -588,9 +588,4 @@ Three points stand out:
   other belong to the same fault and are not independent. Bank has 136 fault events
   and Telecom only 51, so Telecom results will be less certain.
 
-The output of this stage, for each system, is a cleaned minute-by-feature table, a
-label table with one column per horizon, and a mask of usable minutes. These are the
-inputs to the windowing, scaling and feature-selection steps described in the
-Methods section, and to the data exploration that follows.
-
 ## References
