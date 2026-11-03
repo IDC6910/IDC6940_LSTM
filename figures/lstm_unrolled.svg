@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 230" font-family="Helvetica, Arial, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+  <style>
+    .cell{fill:#e8f0fb;stroke:#2c5d9e;stroke-width:1.5}
+    .head{fill:#fdf1e3;stroke:#b86b12;stroke-width:1.5}
+    .ln{stroke:#444;stroke-width:1.4;fill:none;marker-end:url(#a)}
+    .lbl{fill:#555;font-size:12px}
+  </style>
+  <!-- inputs -->
+  <text x="70"  y="215" text-anchor="middle">x(t−59)</text>
+  <text x="200" y="215" text-anchor="middle">x(t−58)</text>
+  <text x="330" y="215" text-anchor="middle">…</text>
+  <text x="460" y="215" text-anchor="middle">x(t)</text>
+  <line class="ln" x1="70"  y1="198" x2="70"  y2="142"/>
+  <line class="ln" x1="200" y1="198" x2="200" y2="142"/>
+  <line class="ln" x1="460" y1="198" x2="460" y2="142"/>
+  <!-- cells -->
+  <rect class="cell" x="25"  y="90" width="90" height="50" rx="8"/><text x="70"  y="120" text-anchor="middle">LSTM cell</text>
+  <rect class="cell" x="155" y="90" width="90" height="50" rx="8"/><text x="200" y="120" text-anchor="middle">LSTM cell</text>
+  <text x="330" y="120" text-anchor="middle" font-size="20">· · ·</text>
+  <rect class="cell" x="415" y="90" width="90" height="50" rx="8"/><text x="460" y="120" text-anchor="middle">LSTM cell</text>
+  <!-- recurrent links -->
+  <line class="ln" x1="115" y1="115" x2="153" y2="115"/><text class="lbl" x="134" y="106" text-anchor="middle">h, c</text>
+  <line class="ln" x1="245" y1="115" x2="295" y2="115"/><text class="lbl" x="270" y="106" text-anchor="middle">h, c</text>
+  <line class="ln" x1="365" y1="115" x2="413" y2="115"/><text class="lbl" x="389" y="106" text-anchor="middle">h, c</text>
+  <!-- head -->
+  <line class="ln" x1="505" y1="115" x2="548" y2="115"/><text class="lbl" x="526" y="106" text-anchor="middle">h(t)</text>
+  <rect class="head" x="550" y="95" width="80" height="40" rx="8"/><text x="590" y="120" text-anchor="middle">Dropout</text>
+  <line class="ln" x1="630" y1="115" x2="653" y2="115"/>
+  <rect class="head" x="655" y="95" width="70" height="40" rx="8"/><text x="690" y="120" text-anchor="middle">Linear</text>
+  <line class="ln" x1="725" y1="115" x2="748" y2="115"/>
+  <rect class="head" x="750" y="95" width="80" height="40" rx="8"/><text x="790" y="120" text-anchor="middle">sigmoid</text>
+  <line class="ln" x1="790" y1="95" x2="790" y2="50"/>
+  <text x="790" y="38" text-anchor="middle">p(failure within H min)</text>
+  <!-- window brace -->
+  <text class="lbl" x="265" y="40" text-anchor="middle">same weights applied at every minute of the 60-minute window</text>
+  <path d="M25,55 Q25,48 35,48 L495,48 Q505,48 505,55" stroke="#888" fill="none"/>
+</svg>

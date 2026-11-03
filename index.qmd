@@ -1,8 +1,9 @@
 ---
 title: "How effectively can LSTM networks predict impending software-system failures from multivariate telemetry"
 subtitle: "This is the capstone project of IDC6910 class"
-author: "Duc Nguyen, Cameron Ball, Luis Madrigal (Advisor: Dr. Cohen)"
+author: "Duc Nguyen, Luis Madrigal (Advisor: Dr. Cohen)"
 date: '`r Sys.Date()`'
+engine: knitr
 format:
   html:
     code-fold: true
@@ -63,56 +64,654 @@ of multiple telemetry sources in improving early failure prediction performance.
 
 ## Methods
 
+A Long Short-Term Memory (LSTM) network is a type of recurrent neural network
+(RNN) designed to learn from ordered sequences of data. It was introduced by
+@Hochreiter1997 to solve a specific problem: ordinary
+RNNs struggle to learn relationships between events that are far apart in a
+sequence. An LSTM adds a separate *memory cell* to each unit of the network,
+together with three *gates* that learn when to write new information into that
+memory, when to erase it, and when to read from it. Because the cell can carry
+information forward almost unchanged, an LSTM can connect a signal at the start
+of a sequence to an outcome at the end of it.
+
+That property is the reason we chose the LSTM for this study. A software failure
+is often preceded by gradual changes in telemetry — memory slowly filling, log
+files growing, CPU load drifting — that can begin many minutes before the failure
+itself. The model needs to look at a stretch of recent history, remember what was
+unusual about it, and decide whether a failure is about to happen. In this section
+we describe how the LSTM works, the assumptions it makes, how the OpenRCA telemetry
+is shaped into the input it needs, and how the model is fitted.
+
+### Recurrent Neural Networks and the Vanishing Gradient
+
+A recurrent neural network processes a sequence $x_1, x_2, \dots, x_T$ one step at
+a time. At each step it combines the current input $x_t$ with a *hidden state*
+$h_{t-1}$ that summarizes everything it has seen so far:
+
+$$
+h_t = \tanh\left(W x_t + U h_{t-1} + b\right)
+$$ {#eq-rnn}
+
+The same weights $W$, $U$ and $b$ are reused at every time step, so the network can
+handle a sequence of any length with a fixed number of parameters.
+
+RNNs are trained with *backpropagation through time* (BPTT) [@Werbos1990]: the
+network is "unrolled" over the sequence, and the error at the final step is passed
+backwards through every earlier step. The gradient that reaches step $t-k$ contains
+a product of $k$ Jacobian matrices,
+
+$$
+\frac{\partial h_t}{\partial h_{t-k}} = \prod_{j=t-k+1}^{t} \operatorname{diag}\!\left(1 - h_j^2\right) U .
+$$ {#eq-bptt}
+
+When the terms in this product are smaller than one, the gradient shrinks
+exponentially as $k$ grows (it *vanishes*); when they are larger than one, it grows
+exponentially (it *explodes*) [@Bengio1994; @Pascanu2013]. In practice a plain RNN
+therefore learns only short-range patterns. For our problem this is a serious
+limitation: an early warning sign 20 minutes before a fault is 20 steps back in the
+sequence.
+
+### Mathematical Foundations of the LSTM
+
+The LSTM replaces the single update in @eq-rnn with a memory cell $c_t$ and three
+gates. Following the standard formulation with a forget gate [@Gers2000], the
+computation at each time step $t$ is:
+
+$$
+\begin{aligned}
+f_t &= \sigma\left(W_f x_t + U_f h_{t-1} + b_f\right) && \text{forget gate}\\
+i_t &= \sigma\left(W_i x_t + U_i h_{t-1} + b_i\right) && \text{input gate}\\
+o_t &= \sigma\left(W_o x_t + U_o h_{t-1} + b_o\right) && \text{output gate}\\
+\tilde{c}_t &= \tanh\left(W_c x_t + U_c h_{t-1} + b_c\right) && \text{candidate memory}\\
+c_t &= f_t \odot c_{t-1} + i_t \odot \tilde{c}_t && \text{cell state update}\\
+h_t &= o_t \odot \tanh\left(c_t\right) && \text{hidden state (output)}
+\end{aligned}
+$$ {#eq-lstm}
+
+where:
+
+- $x_t$ is the input vector at time $t$: the telemetry readings for one minute.
+- $h_{t-1}$ is the hidden state from the previous minute; $h_t$ is the new one.
+- $c_{t-1}$ and $c_t$ are the old and new **cell states** — the long-term memory.
+- $f_t$, $i_t$, $o_t$ are the **gates**. Each is a vector of numbers between 0 and 1
+  produced by the logistic sigmoid $\sigma(z) = 1/(1+e^{-z})$. A value near 0 means
+  "block" and a value near 1 means "let through".
+- $\tilde{c}_t$ is the **candidate memory**: new information that could be written
+  to the cell. The $\tanh$ function keeps it between $-1$ and $1$.
+- $W_\ast$ are the input weight matrices, $U_\ast$ are the recurrent weight matrices
+  and $b_\ast$ are bias vectors, one set for each gate and the candidate.
+- $\odot$ is element-wise (Hadamard) multiplication.
+
+**What each gate does.**
+
+- The **forget gate** $f_t$ decides how much of the old memory $c_{t-1}$ to keep.
+  If a component of $f_t$ is close to 1, that part of the memory is carried forward;
+  close to 0, it is erased.
+- The **input gate** $i_t$ decides how much of the candidate $\tilde{c}_t$ is written
+  into memory. This lets the network ignore minutes that carry no useful information.
+- The **output gate** $o_t$ decides how much of the memory is exposed in the hidden
+  state $h_t$, which is what the next step — and eventually the prediction layer —
+  sees.
+
+**Why this fixes the vanishing gradient.** The key line in @eq-lstm is the cell
+update $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$. It is *additive*, not a
+repeated squashing like @eq-rnn. Along this path the gradient from one step to the
+previous is
+
+$$
+\frac{\partial c_t}{\partial c_{t-1}} \approx \operatorname{diag}(f_t),
+$$
+
+so as long as the network learns to keep the forget gate open ($f_t \approx 1$), the
+error signal can travel back across many time steps without shrinking. This is the
+"constant error carousel" that gives the LSTM its long memory [@Hochreiter1997].
+
+#### Matrix and Vector Dimensions
+
+Let $k$ be the number of input features and $d$ the number of hidden units. Then:
+
+| Symbol | Dimension | Meaning |
+|---|---|---|
+| $x_t$ | $k \times 1$ | telemetry at minute $t$ |
+| $h_t,\; c_t,\; f_t,\; i_t,\; o_t,\; \tilde{c}_t$ | $d \times 1$ | hidden state, cell state, gates, candidate |
+| $W_f, W_i, W_o, W_c$ | $d \times k$ | input weights |
+| $U_f, U_i, U_o, U_c$ | $d \times d$ | recurrent weights |
+| $b_f, b_i, b_o, b_c$ | $d \times 1$ | biases |
+
+The four weight sets are usually stacked into one matrix, so a single LSTM layer has
+
+$$
+4\left(dk + d^2 + d\right)
+$$
+
+trainable parameters. In this project the input has $k = 128$ selected telemetry
+features and the LSTM has $d = 64$ hidden units, which gives
+$4(64 \cdot 128 + 64^2 + 64) = 49{,}408$ parameters in the LSTM layer. (PyTorch keeps
+two bias vectors per gate, which adds another $4d = 256$.) The prediction layer
+described below adds $d + 1 = 65$ more, for a total of $49{,}729$ parameters.
+Importantly, this number does not depend on the length of the sequence: the same
+weights are applied at every minute.
+
+#### Example
+
+To make @eq-lstm concrete, consider a toy LSTM with $d = 1$ hidden unit that watches
+$k = 2$ scaled telemetry features of one container: CPU usage and memory usage. At
+the previous minute the network's state was $h_{t-1} = 0.2$ and $c_{t-1} = 0.5$. At
+the current minute CPU usage spikes while memory is normal:
+
+$$
+x_t = \begin{bmatrix} \text{CPU} \\ \text{Memory} \end{bmatrix}
+    = \begin{bmatrix} 1.5 \\ 0.3 \end{bmatrix}
+$$
+
+Suppose training has produced the following weights:
+
+| Gate | $W_\ast$ (CPU, Memory) | $U_\ast$ | $b_\ast$ |
+|---|---|---|---|
+| forget $f$ | $[\,0.6,\; -0.2\,]$ | 0.5 | 1.0 |
+| input $i$ | $[\,0.8,\; 0.1\,]$ | 0.3 | 0.0 |
+| output $o$ | $[\,0.4,\; 0.2\,]$ | 0.6 | 0.2 |
+| candidate $\tilde{c}$ | $[\,0.9,\; 0.3\,]$ | 0.4 | $-0.1$ |
+
+**Step 1 — gates.** For the forget gate,
+
+$$
+f_t = \sigma(0.6 \cdot 1.5 - 0.2 \cdot 0.3 + 0.5 \cdot 0.2 + 1.0) = \sigma(1.94) = 0.874 .
+$$
+
+The other gates follow in the same way:
+
+$$
+i_t = \sigma(1.29) = 0.784, \qquad
+o_t = \sigma(0.98) = 0.727, \qquad
+\tilde{c}_t = \tanh(1.42) = 0.890 .
+$$
+
+**Step 2 — update the memory.**
+
+$$
+c_t = \underbrace{0.874 \times 0.5}_{\text{kept from before}}
+    + \underbrace{0.784 \times 0.890}_{\text{newly written}}
+    = 0.437 + 0.698 = 1.135
+$$
+
+**Step 3 — produce the output.**
+
+$$
+h_t = 0.727 \times \tanh(1.135) = 0.727 \times 0.813 = 0.591
+$$
+
+The network kept most of its earlier memory (87 %) and added a large new
+contribution because the CPU spike opened the input gate. The value of $c_t$ has
+grown from 0.5 to 1.135, so the "something unusual is happening" signal will be
+carried into the next minutes. Repeating these three steps for every minute of
+the look-back window is all the LSTM does; training consists of finding weights
+that make this memory useful for predicting failures.
+
+#### From a Sequence to a Failure Prediction
+
+For each minute $t$ we give the LSTM the previous $L = 60$ minutes of telemetry,
+$x_{t-59}, \dots, x_t$, and run @eq-lstm over them in order. Only the final hidden
+state $h_t$ is used for the prediction, because by then it summarizes the whole
+window. It passes through dropout and a single linear layer, and a sigmoid turns
+the result into a probability:
+
+$$
+\hat{p}_t = \sigma\!\left(v^{\top} \operatorname{Dropout}(h_t) + b_v\right),
+$$ {#eq-head}
+
+where $v$ is a $d \times 1$ weight vector and $b_v$ is a scalar. $\hat{p}_t$ is the
+model's estimated probability that a failure will start within the next $H$ minutes.
+
+![The LSTM unrolled over a 60-minute look-back window. The same cell (same weights) is applied every minute; only the final hidden state feeds the prediction.](figures/lstm_unrolled.svg){#fig-unrolled width="100%"}
+
+### Parameter Estimation
+
+The parameters $\theta = \{W_\ast, U_\ast, b_\ast, v, b_v\}$ are learned by minimizing
+a **weighted binary cross-entropy** loss over the $N$ training windows:
+
+$$
+\mathcal{L}(\theta) = -\frac{1}{N}\sum_{n=1}^{N}
+\Big[\, w_{+}\, y_n \log \hat{p}_n + (1 - y_n)\log\left(1 - \hat{p}_n\right) \Big]
+$$ {#eq-loss}
+
+where $y_n \in \{0, 1\}$ is the true label. Failures are rare, so the positive-class
+weight $w_{+}$ is set to the ratio of negative to positive windows in the training
+data. Without this weight the model could reach a low loss by always predicting
+"no failure".
+
+Gradients of @eq-loss are computed by backpropagation through time and the weights
+are updated with the **Adam** optimizer [@Kingma2015], which adapts the step size for
+each parameter. Several standard techniques keep training stable and reduce
+overfitting:
+
+- **Gradient clipping.** If the overall gradient norm exceeds 5 it is rescaled to 5.
+  This guards against the exploding-gradient problem described above [@Pascanu2013].
+- **Dropout** with rate 0.2 on the final hidden state randomly zeroes units during
+  training, so the prediction cannot rely on any single unit [@Srivastava2014].
+- **Weight decay** of $10^{-5}$ adds a small L2 penalty on the weights.
+- **Early stopping.** After each epoch the model is scored on a separate validation
+  set. Training stops when the validation score has not improved for 4 epochs, and
+  the weights from the best epoch are restored.
+
+| Setting | Value |
+|---|---|
+| Look-back window $L$ | 60 minutes |
+| Input features $k$ | 128 |
+| Hidden units $d$ | 64 |
+| LSTM layers | 1 |
+| Dropout | 0.2 |
+| Optimizer | Adam, learning rate $10^{-3}$, weight decay $10^{-5}$ |
+| Batch size | 128 |
+| Maximum epochs | 15 |
+| Early-stopping patience | 4 epochs (on validation PR-AUC) |
+| Gradient clipping | max norm 5 |
+
+: Default LSTM configuration. {#tbl-config}
+
+### Assumptions
+
+An LSTM is not a statistical model in the classical sense, so it does not carry
+distributional assumptions such as normal residuals. Using it for failure
+prediction does, however, rest on several assumptions about the data:
+
+1. **Failures have precursors inside the look-back window.** The model can only
+   predict a failure if the telemetry changes in some detectable way within the $L$
+   minutes before it. If a fault arrives with no warning, no model can predict it.
+2. **Order matters.** The LSTM is worth its extra complexity only if the *sequence*
+   of readings carries information beyond simple summaries such as the mean or
+   maximum of the window.
+3. **The system behaves the same way in training and testing.** The model assumes
+   that the relationship between telemetry and failures does not change between the
+   days it learns from and the days it is tested on. Components that appear or
+   disappear over time violate this.
+4. **Inputs are on a regular grid and on comparable scales.** @eq-lstm treats every
+   step as one fixed unit of time, and the sigmoid and tanh functions saturate for
+   large inputs. Telemetry must therefore be resampled to a fixed interval, gaps
+   filled, and features scaled.
+5. **Training examples are not independent.** Windows for neighbouring minutes
+   overlap by 59 of their 60 minutes. Treating them as independent samples when
+   splitting the data would leak information from training into testing.
+
+We address these as follows: assumption 4 through the preprocessing described
+below; assumption 5 by splitting data by whole days; and assumption 3 by testing
+on later days than those used for training, so that any drift appears in the
+results rather than being hidden. Assumptions 1 and 2 are what this study tests.
+
+### Data Structure
+
+An LSTM needs a three-dimensional input tensor of shape
+
+$$
+\underbrace{N}_{\text{windows}} \times \underbrace{L}_{\text{minutes}} \times \underbrace{k}_{\text{features}},
+$$
+
+and a label vector $y$ of length $N$. Each window is one $L \times k$ matrix — a
+slice of a wide table with one row per minute and one column per telemetry series.
+
+The data come from OpenRCA [@xu2025openrca], a benchmark of microservice systems
+with injected faults. Each day of data contains metric files that record a
+timestamp, a component and a key performance indicator (KPI) such as CPU use, and a
+`record.csv` file lists the start time, component and type of every injected fault.
+We use the metric telemetry from two systems, Bank and Telecom. Logs and traces are
+outside the scope of this study.
+
+The raw telemetry is converted into LSTM input in the following steps:
+
+1. **Pivot to a wide table.** Each day becomes a table on an exact 1-minute grid,
+   with one column per `component‖KPI` pair.
+2. **Clean the columns.** Keep only series present on every day and drop any series
+   that is more than 80 % missing.
+3. **Fill short gaps.** Forward-fill missing values within a day, up to twice the
+   series' own sampling interval.
+4. **Label each minute.** For a prediction horizon $H$,
+   $y_{t,H} = 1$ if any fault starts in the interval $(t,\, t+H]$, and 0 otherwise.
+   We study $H \in \{1, 3, 5, 10, 15, 30\}$ minutes.
+5. **Apply two rules so the model is not given credit it does not deserve.**
+   - *Blackout:* the 10 minutes after a fault starts are removed from the negative
+     examples, so the model is never rewarded for noticing a fault that has already
+     begun.
+   - *Window completeness:* a minute is used only if its full 60-minute look-back
+     and its $H$-minute look-ahead fall on the same day, because the recorded days
+     are not consecutive.
+6. **Scale.** Each feature is centred on its median and divided by its interquartile
+   range, which are robust to the heavy tails common in KPI data, then clipped to
+   $\pm 10$.
+7. **Select features.** Keep the $k = 128$ features with the highest ANOVA
+   $F$-statistic against the training labels.
+8. **Balance the classes.** Keep every positive training window and randomly sample
+   negatives at a 5:1 ratio. Validation and test sets are never resampled.
+
+Steps 6–8 use **training days only**, so no information from the test days leaks
+into the model.
+
+### Implementation in Python
+
+The model is implemented in Python using the following packages:
+
+- **PyTorch** [@Paszke2019]: defines the LSTM, computes gradients and trains the model.
+- **NumPy** and **pandas**: build the minute-level tables and the window tensors.
+- **scikit-learn**: ANOVA $F$-test feature selection and evaluation metrics.
+- **Matplotlib**: figures.
+
+The network corresponds directly to @eq-lstm and @eq-head. `nn.LSTM` implements
+the cell equations; we take the hidden state at the last time step and pass it
+through dropout and a linear layer:
+
+```python
+import torch.nn as nn
+
+class LSTMNet(nn.Module):
+    def __init__(self, n_features, hidden=64, layers=1, p=0.2):
+        super().__init__()
+        self.rnn = nn.LSTM(n_features, hidden, layers, batch_first=True)
+        self.drop = nn.Dropout(p)
+        self.head = nn.Linear(hidden, 1)
+
+    def forward(self, x):                # x: (batch, L, k)
+        out, _ = self.rnn(x)             # out: (batch, L, hidden)
+        h_last = out[:, -1, :]           # final hidden state h_t
+        return self.head(self.drop(h_last)).squeeze(-1)   # logit
+```
+
+The sigmoid in @eq-head is folded into the loss for numerical stability
+(`nn.BCEWithLogitsLoss` with `pos_weight` $= w_{+}$). The training loop follows the
+procedure in the Parameter Estimation section:
+
+```python
+loss_fn = nn.BCEWithLogitsLoss(pos_weight=w_pos)
+opt = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
+
+for epoch in range(max_epochs):
+    model.train()
+    for xb, yb in train_loader:
+        opt.zero_grad()
+        loss = loss_fn(model(xb), yb)
+        loss.backward()                                   # backpropagation through time
+        nn.utils.clip_grad_norm_(model.parameters(), 5.0) # gradient clipping
+        opt.step()
+    score = pr_auc(y_val, predict(model, X_val))          # early stopping on validation
+    # keep the best weights; stop after 4 epochs without improvement
+```
+
+### Evaluation Design
+
+**Splitting by day.** Neighbouring minutes are almost identical, so randomly
+splitting individual minutes would place near-duplicate windows in both training
+and test sets. All splits are therefore made by whole day:
+
+- *Chronological split:* train on the earliest days, validate on the next day, and
+  test on the latest days (about 30 %). This mirrors how the model would be deployed.
+- *Leave-two-days-out cross-validation:* each fold holds out two days for testing,
+  giving more test events in total.
+
+**Metrics.** Because only about 1 % of minutes precede a fault at $H = 1$, accuracy is
+not informative: a model that never predicts a failure would be 99 % accurate. The
+main metric is the **area under the precision–recall curve (PR-AUC)**, which focuses
+on how well the rare positive class is found [@Saito2015]. It is always reported next
+to the base rate (the PR-AUC of a model that guesses at random). We also report
+**event recall** — the share of faults that receive at least one alarm before they
+start — and **lead time**, how many minutes before the fault the first alarm occurs.
+
+**Uncertainty.** The real sample size is the number of faults (136 for Bank, 51 for
+Telecom), not the number of minutes. Confidence intervals are therefore computed by
+bootstrapping over fault events rather than over minutes.
+
 ## Analysis and Results
 
-### Data Exploration and Visualization
+### Dataset Description
 
-A study was conducted to determine how effectively LSTM networks can predict software-system failures before they happen, using multivariate telemetry, and whether they beat classical models given the same inputs. This section describes the data, how it was turned into a supervised learning problem, and what we found before any model was trained.
+The data come from **OpenRCA** [@xu2025openrca], a public benchmark released by
+Microsoft for root-cause analysis of software failures. OpenRCA collects telemetry
+from three enterprise microservice systems — **Bank**, **Telecom** and **Market**
+(the last split into two deployments, `cloudbed-1` and `cloudbed-2`) — into which
+engineers deliberately injected faults such as CPU exhaustion, memory leaks and
+network delays. For every system, OpenRCA provides:
 
-#### Data sources and collection process
+- **Telemetry**, organised into one folder per day, with three modalities:
+  - **metrics** — numeric key performance indicators (KPIs) such as CPU use, memory
+    use, response time and request counts, sampled every few seconds to minutes;
+  - **logs** — text messages written by the services;
+  - **traces** — records of individual requests travelling between services.
+- **A fault record** (`record.csv`) listing every injected fault with its start
+  time, the component it was injected into, and the type of fault.
 
-The data comes from **OpenRCA**, a public root-cause-analysis benchmark of microservice systems with injected faults. We use two of its systems:
+**Scope of this study.** We focus on the **Bank** and **Telecom** systems and on their
+**metric** telemetry only. We chose these two systems because:
+
+1. Each is a single, self-contained system with one fault record, so the telemetry
+   and the labels line up directly. Market is split into two separate deployments
+   that would each need their own pipeline.
+2. They are very different from each other — different business domains, numbers of
+   components, monitoring tools and time periods — so a result that holds on both
+   is more convincing than a result on one.
+3. Metrics are numeric time series that can be placed on a common one-minute grid,
+   which is the input the LSTM needs. Logs and traces would first require text
+   parsing and request-level aggregation, which is outside the scope of this project.
 
 | | **Bank** | **Telecom** |
 |---|---|---|
-| Days | 10 (2021-03-04 to 03-25, not consecutive) | 15 (2020-04-11 to 05-31, not consecutive) |
-| Coverage per day | 1,440 min (full day) | 360 min (00:00–05:59 only) |
-| Labelled minutes | 14,400 | 5,400 |
-| Metric sources | container, app | node, container, middleware, service, app |
+| Domain | Online banking platform | Telecom operator services |
+| Recorded days | 10 (2021-03-04 to 2021-03-25, not consecutive) | 15 (2020-04-11 to 2020-05-31, not consecutive) |
+| Telemetry per day | 24 hours (1,440 minutes) | 6 hours, 00:00–05:59 (360 minutes) |
+| Total minutes | 14,400 | 5,400 |
+| Metric files per day | `metric_container.csv`, `metric_app.csv` | `metric_node.csv`, `metric_container.csv`, `metric_middleware.csv`, `metric_service.csv`, `metric_app.csv` |
+| Timestamp unit | seconds | milliseconds |
+| Injected faults | 136 | 51 |
+| Fault types | 8 | 5 |
+
+: Overview of the two OpenRCA systems used in this study. {#tbl-systems}
+
+All OpenRCA timestamps are Unix epoch values, and all dates and day-folder names are
+in **UTC+8** (China Standard Time). Dates and times in this report are shown in UTC+8.
+
+#### Variable Description
+
+The **fault record** has the same columns in both systems:
+
+| Variable | Description |
+|---|---|
+| `level` | Level of the system where the fault was injected: `pod` (a container), `node` (a host machine) or `service`. All Bank faults are at pod level. |
+| `component` | Name of the component the fault was injected into, for example `Mysql02` (Bank) or `docker_003` (Telecom). |
+| `timestamp` | Fault start time as a Unix epoch value (seconds). |
+| `datetime` | The same start time written as a date and time in UTC+8. |
+| `reason` | Type of fault, for example `high CPU usage` or `network delay`. |
+
+: Columns of `record.csv`. {#tbl-record-vars}
+
+The record gives each fault's **start time only**; it does not say how long the fault
+lasted. This is important for labeling, described below.
+
+The **metric files** come in two layouts:
+
+| Layout | Files | Columns | Meaning |
+|---|---|---|---|
+| Long (one row per reading) | Bank `metric_container.csv`; all Telecom files except `metric_app.csv` | `timestamp`, `cmdb_id`, `kpi_name` / `name`, `value` | At time `timestamp`, KPI `kpi_name` on component `cmdb_id` had value `value`. |
+| Wide (one row per service per time) | Bank and Telecom `metric_app.csv` | Bank: `timestamp`, `tc`, `rr`, `sr`, `cnt`, `mrt`; Telecom: `startTime`, `serviceName`, `avg_time`, `num`, `succee_num`, `succee_rate` | Application-level request statistics: request count, success rate and mean response time per service. |
+
+: Layouts of the metric files. {#tbl-metric-layout}
+
+Each combination of a component and a KPI — for example `Tomcat04 ‖ CPU utilisation` —
+is one **time series**, and becomes one input feature for the model.
+
+### Load Data
+
+```{r, warning=FALSE, echo=TRUE, message=FALSE}
+# loading packages
+library(tidyverse)
+library(knitr)
+```
+
+The fault records are small and are loaded directly. Start times are converted from
+epoch seconds to UTC+8 date-times.
+
+```{r, echo=TRUE}
+read_record <- function(path, system) {
+  read_csv(path, show_col_types = FALSE) |>
+    transmute(system    = system,
+              level,
+              component,
+              reason,
+              timestamp = as.numeric(timestamp),
+              onset     = as.POSIXct(timestamp, origin = "1970-01-01",
+                                     tz = "Asia/Shanghai"))   # UTC+8
+}
+
+faults <- bind_rows(
+  read_record("data/bank_record.csv",    "Bank"),
+  read_record("data/telecom_record.csv", "Telecom")
+)
+
+faults |>
+  group_by(system) |>
+  slice_head(n = 3) |>
+  select(system, level, component, reason, onset) |>
+  kable(caption = "First three faults in each system's record.")
+```
+
+```{r, echo=TRUE}
+faults |>
+  count(system, reason, name = "faults") |>
+  group_by(system) |>
+  mutate(share = scales::percent(faults / sum(faults), accuracy = 1)) |>
+  arrange(system, desc(faults)) |>
+  kable(caption = "Injected fault types by system.")
+```
+
+Both systems are dominated by a few fault types. In Bank, high CPU usage, network
+packet loss and network latency make up two-thirds of all faults, while JVM CPU load
+(3 faults) and disk space (5 faults) are too rare to evaluate on their own. In
+Telecom, CPU faults and network delay make up 63 %.
+
+```{r, echo=TRUE}
+faults |>
+  mutate(day = as.Date(onset, tz = "Asia/Shanghai")) |>
+  count(system, day, name = "faults") |>
+  group_by(system) |>
+  summarise(days_with_faults = n(),
+            min_per_day      = min(faults),
+            max_per_day      = max(faults),
+            total            = sum(faults)) |>
+  kable(caption = "Faults per day.")
+```
+
+Bank has faults on 9 of its 10 days and Telecom on 11 of its 15 days. The days with
+telemetry but **no recorded faults** (Bank 2021-03-05; Telecom 2020-04-20 to
+2020-04-23) are kept in the data as fault-free periods.
+
+The metric telemetry is much larger — about 16 GB for Telecom and roughly 90 MB per
+day for Bank — so it is not stored in this repository. It is read day by day in Python
+with pandas. The function below reads one metric file and turns it into a table with
+one row per minute and one column per `component‖KPI` series; the long and wide
+layouts in @tbl-metric-layout are handled separately:
+
+```python
+def load_source(day_dir, src, grid):
+    """Read one metric file into a minute x feature table ('component||kpi')."""
+    if src.kind == "long":
+        df = pd.read_csv(day_dir / src.path,
+                         usecols=[src.ts_col, src.id_col, src.kpi_col, src.val_col])
+        df["minute"] = to_minute(df[src.ts_col], src.ts_unit)   # s or ms -> minute
+        df["feature"] = df[src.id_col] + "||" + df[src.kpi_col]
+        wide = df.pivot_table(index="minute", columns="feature",
+                              values=src.val_col, aggfunc="mean")
+    else:  # wide layout (metric_app.csv)
+        df = pd.read_csv(day_dir / src.path)
+        df["minute"] = to_minute(df[src.ts_col], src.ts_unit)
+        wide = pd.concat([df.pivot_table(index="minute", columns=src.id_col,
+                                         values=v, aggfunc="mean")
+                            .add_prefix("app||").add_suffix("." + v)
+                          for v in src.value_cols], axis=1)
+    return wide.reindex(grid)          # exact 1-minute grid for that day
+```
+
+Running this for every metric file and every day produces the raw feature tables:
+
+| | **Bank** | **Telecom** |
+|---|---|---|
+| Rows (minutes) | 14,400 | 5,400 |
+| Components in the telemetry | 18 | 51 |
+| Raw `component‖KPI` series | 1,933 | 2,073 |
+| Cells missing in the raw 1-minute grid | 48.3 % | 25.5 % |
+
+: Size of the raw feature tables after loading. {#tbl-raw}
+
+The high share of missing cells is expected: many KPIs are recorded every 2 minutes
+or once an hour rather than every minute, so most of their cells on a 1-minute grid
+are empty.
+
+### Data Preparation and Labeling
+
+#### Cleaning the telemetry
+
+The raw tables are cleaned in four steps:
+
+1. **Align to a 1-minute grid.** Every reading is assigned to the minute it falls in,
+   and readings within the same minute are averaged. Each day becomes exactly 1,440
+   (Bank) or 360 (Telecom) rows. Telecom timestamps are first divided by 1,000 to
+   convert milliseconds to seconds.
+2. **Keep only series present on every day.** A model cannot use a feature that
+   disappears halfway through the data. Some Bank containers (`dockerA1`, `dockerA2`,
+   `dockerB1`, `dockerB2`) stop reporting by 2021-03-24, which removes 248 series;
+   Telecom loses 430 series this way.
+3. **Drop sparse series.** Any series more than 80 % missing on the 1-minute grid is
+   removed; there is too little data to fill it reliably.
+4. **Fill short gaps.** Within each day, a missing value is filled with the last
+   observed value (or, at the start of a day, the next one), but only for up to twice
+   that series' own sampling interval, and at least 2 minutes. A KPI sampled every
+   2 minutes can therefore be filled for up to 4 minutes, while a longer outage in
+   the data is not hidden. Gaps are never filled across days.
+
+| | **Bank** | **Telecom** |
+|---|---|---|
+| Raw series | 1,933 | 2,073 |
+| Removed: not present on every day | 248 | 430 |
+| Removed: more than 80 % missing | 120 | 421 |
+| **Features kept** | **1,565** | **1,222** |
 | Components kept | 15 of 18 | 47 of 51 |
-| Features after cleaning | 1,565 | 1,222 |
-| Fault events | 136 (8 types) | 51 (5 types) |
-| Missing data left after filling | 4.5 % | 1.1 % |
+| Missing cells after filling | 4.5 % | 1.1 % |
 
-**Telemetry.** Each day folder holds metric CSVs that record a timestamp, a component and a KPI (key performance indicator, such as CPU use). Bank timestamps are in seconds and Telecom timestamps are in milliseconds. Logs and traces are also available but are out of scope.
+: Effect of each cleaning step. {#tbl-cleaning}
 
-**Ground truth.** Each system has a `record.csv` that lists every injected fault with its onset time, component and fault type. It gives no duration.
+The few missing values that remain after filling are set to 0 before the data are
+scaled and windowed (see the Methods section).
 
-**Processing:**
+#### Labeling
 
-1. Pivot each day into a wide table of minute × `component‖kpi` on an exact 1-minute grid. Telecom features are keyed `component‖family.kpi` because some KPI names repeat across metric families.
-2. Keep only series that appear on every day. Bank's `dockerA1/A2/B1/B2` containers mostly disappear by 03-24, which removes 248 series. Telecom loses 430 series this way.
-3. Drop series that are more than 80 % missing: 120 for Bank, 421 for Telecom.
-4. Forward-fill gaps within a day, up to twice each series' own sampling interval.
-5. Build labels: `y[t, H] = 1` if any fault starts within `(t, t+H]`, for H ∈ {1, 3, 5, 10, 15, 30} minutes.
+The fault record gives a start time for each fault, but our goal is to predict a
+fault *before* it starts. We therefore turn each fault into labels on the minutes
+leading up to it. For a prediction horizon of $H$ minutes, the label of minute $t$ is
 
-**Two rules that keep the evaluation honest:**
+$$
+y_{t,H} =
+\begin{cases}
+1 & \text{if any fault starts in the interval } (t,\; t + H],\\
+0 & \text{otherwise.}
+\end{cases}
+$$ {#eq-label}
 
-- **Blackout.** The 10 minutes after each fault onset are excluded from the negative examples, so a model is never credited for detecting a fault that has already started.
-- **Window completeness.** A minute is only used if its 60-minute look-back and its H-minute look-ahead both fall inside the same day. Because the days are not consecutive, a window would otherwise join 03-12 directly to 03-23.
+In words, minute $t$ is positive if a failure will begin within the next $H$
+minutes. We build labels for six horizons, $H \in \{1, 3, 5, 10, 15, 30\}$ minutes,
+so we can measure how prediction quality changes as the model is asked to look
+further ahead. Fault start times are rounded down to the minute so that they fall on
+the same grid as the telemetry. All 136 Bank and 51 Telecom faults land on the grid.
 
-**Timezone.** All OpenRCA timestamps are UTC+8. We join data only on raw epoch values and show times only in UTC+8. Rendering in local US time would shift every label by 14 hours.
+Two further rules decide which minutes can be used at all:
 
-#### Initial findings
+- **Blackout after a fault.** The record does not say how long a fault lasts. For the
+  10 minutes after a fault starts, the system is probably still failing, so these
+  minutes are removed from the negative examples. Otherwise the model would be
+  rewarded for "predicting" a fault that is already visible in the telemetry.
+- **Complete windows only.** A minute is used only if its full 60-minute look-back
+  window *and* its $H$-minute look-ahead both lie on the same day. The recorded days
+  are not consecutive — for example, Bank jumps from 2021-03-12 to 2021-03-23 — so a
+  window that crossed midnight would join two unrelated days together.
 
-##### Figure 1 — Dataset comparison
+These rules remove the first hour of every day and a few minutes around each fault.
+@tbl-positive shows the result: the number of usable minutes and the share labelled
+positive at each horizon.
 
-![Dataset comparison](figures/00_dataset_comparison.png)
-
-- **Positive rates are almost the same in both systems.** They rise roughly linearly from about 1.04 % at H = 1 to 28.7 % (Bank) and 31.9 % (Telecom) at H = 30. Both systems have exactly 9.44 faults per 1,000 minutes, so results at the same horizon can be compared directly.
-- **The real sample size is the number of faults, not the number of minutes.** Tens of GB of raw telemetry reduce to 136 and 51 fault events. Telecom has about 2.7× fewer events but about 3× more components (47 vs 15). That makes it the harder problem: more features per event and wider confidence intervals (roughly 1.6× wider).
-
-| H (min) | Bank positives / evaluable | Bank rate | Telecom positives / evaluable | Telecom rate |
+| $H$ (min) | Bank positive / usable | Bank rate | Telecom positive / usable | Telecom rate |
 |---|---|---|---|---|
 | 1 | 129 / 12,382 | 1.04 % | 42 / 4,033 | 1.04 % |
 | 3 | 386 / 12,370 | 3.12 % | 126 / 4,003 | 3.15 % |
@@ -121,130 +720,22 @@ The data comes from **OpenRCA**, a public root-cause-analysis benchmark of micro
 | 15 | 1,902 / 12,368 | 15.38 % | 630 / 3,839 | 16.41 % |
 | 30 | 3,573 / 12,459 | 28.68 % | 1,217 / 3,812 | 31.93 % |
 
-##### Figure 2 — Per-system overview
+: Positive minutes by prediction horizon. {#tbl-positive}
 
-![Bank dataset overview](figures/bank_01_dataset_overview.png)
+Three points stand out:
 
-![Telecom dataset overview](figures/telecom_01_dataset_overview.png)
+- **Positives are rare at short horizons.** At $H = 1$ only about 1 % of minutes are
+  positive. A model that always predicts "no failure" would be 99 % accurate, which
+  is why we evaluate with PR-AUC rather than accuracy.
+- **The two systems are directly comparable.** Both have about 9.4 faults per 1,000
+  minutes, so their positive rates are almost identical at every horizon.
+- **The real sample size is the number of faults.** Positive minutes next to each
+  other belong to the same fault and are not independent. Bank has 136 fault events
+  and Telecom only 51, so Telecom results will be less certain.
 
-**Bank:**
-
-- **Faults per day** range from 10 to 21. There is an 11-day gap between 03-12 and 03-23.
-- **Fault types are imbalanced.** High CPU (33), network packet loss (32) and network latency (27) make up 68 % of faults. JVM CPU load (3) and disk space (5) are too rare to evaluate on their own.
-- **Missing data per series** comes in two clusters in the raw 1-minute grid: about 20–30 % and about 60–70 %. These match KPIs sampled every 2 minutes and KPIs sampled hourly; about 48 % of grid cells are empty. After forward-filling, most series are near 0 % missing, with a second peak around 10 %.
-
-**Telecom:**
-
-- **Faults are concentrated in the May block.** 04-11 has 6 faults, 04-20 to 04-23 have none, and the 11 days from 05-22 to 05-31 hold the other 45 (2–8 per day). There is a 29-day gap between 04-23 and 05-22.
-- **Fault types:** CPU fault (19) and network delay (13) make up 63 %. Network loss (7), db connection limit (7) and db close (5) are small classes.
-- **Missing data is mostly a sampling-rate effect.** Most series are almost complete in the raw grid; the rest cluster near 80 % and 90–100 % missing. After forward-filling, nearly all series are at about 0 %, leaving 1.1 % residual missingness.
-
-##### Figure 3 — Single-fault close-ups
-
-![Bank fault close-up](figures/bank_02_fault_closeup.png)
-
-![Telecom fault close-up](figures/telecom_02_fault_closeup.png)
-
-Each panel shows the first fault with at least 30 minutes of same-day history; the window never crosses a day boundary.
-
-**Bank** shows a high-memory fault on `MG01` on 03-04, with the 4 KPIs that change most around the onset (scaled to 0–1). Two KPIs, filesystem capacity and the zabbix agent log size, start changing **15–20 minutes before** onset. CPU idle changes sharply only at onset. So at least some faults leave signs in the telemetry before they begin, which is the premise of the study.
-
-**Telecom** shows a CPU fault on `docker_004` at 01:40 on 04-11. Telecom containers expose only two KPIs, CPU and memory used. CPU use jumps sharply at onset and stays high for about 6 minutes. There is also a similar CPU burst about 20–25 minutes *before* onset that returns to baseline. A model could read that burst as a warning sign, or it could be unrelated background load that would cause false alarms. One event cannot tell these apart.
-
-##### Figure 4 — Train/validation/test splits
-
-![Bank day-grouped splits](figures/bank_03_splits.png)
-
-![Telecom day-grouped splits](figures/telecom_03_splits.png)
-
-All splits are grouped by day, so minutes from the same day never appear in both training and testing.
-
-- **Bank** (chronological + 5 CV folds): test folds hold between 16 and 43 events.
-- **Telecom** (chronological + 8 CV folds): test folds hold between **0 and 14** events. Fold `cv2` (test days 04-21 and 04-22) contains **no faults at all**, and `cv3` and `cv8` hold only 4 each.
-
-#### Unexpected patterns and anomalies
-
-1. **Some days have telemetry but no faults.** Checked against the raw `record.csv` (by epoch and by its own `datetime` column):
-   - **Bank:** 2021-03-05 has 0 of 136 faults, although its container metrics (~86 MB) are as complete as any other day's. Its `metric_app.csv` is under half the size of 03-04's, which is worth a look.
-   - **Telecom:** 2020-04-20 to 04-23 (four consecutive days) have 0 of 51 faults, despite about 40 MB of metrics each.
-
-   These may be fault-free baseline periods or gaps in the labels; OpenRCA does not say which. Either way, they are negative-only days, and the evaluation has to account for them.
-2. **Fault-free days break some test folds.**
-   - Bank `cv1` has only 16 test events (below the planned 20–30) because one of its test days is 03-05.
-   - Telecom `cv2` has **0** test events, so PR-AUC, event recall and lead time are undefined for that fold. `cv3` and `cv8` have only 4 events each, so one fault changes event recall by 25 points.
-   - Folds should be built to balance events rather than days, or zero-event folds should be reported as false-alarm-only folds rather than averaged in.
-3. **The set of components changes over time.** The `dockerA*/B*` containers are present early and mostly gone by 03-24. A chronological test on 03-23 to 03-25 therefore sees a different system from the one the model was trained on. Chronological results will be worse than cross-validation results, and this is a real, reportable source of distribution shift rather than noise.
-4. **The memory fault in Figure 3 is not visible in memory KPIs.** The strongest early signals are filesystem and log-size growth, and CPU idle (scaled) rises at onset. Fault labels describe what was injected, not how it shows up. Assuming that a "memory" fault will appear in memory metrics would be wrong, which supports models that see all features over models built on hand-picked ones.
-5. **Telecom only covers 00:00–05:59.** A time-of-day feature has only 360 possible values there, all overnight. Any time-of-day control result on Telecom will mean something very different from Bank's.
-6. **At H = 30, almost a third of minutes are positive.** At that horizon the task is closer to "is this a busy period?" than to prediction. A time-of-day-only control model is included to detect this.
-
-#### Implications for modeling
-
-- Splits must be grouped by day. Adjacent minutes are near-duplicates, and shuffling them inflates ROC-AUC to about 0.99.
-- The main metric should be PR-AUC reported next to the base rate, plus event-level recall and lead time. Accuracy is meaningless at a 1 % positive rate.
-- Confidence intervals should come from a bootstrap over events, not minutes. With 136 events, PR-AUC differences under about 0.05 are not significant.
-
-### Modeling and Results
-
-### Data Splitting
-
-Adjacent minutes are very similar, so randomly splitting individual minutes could put nearly identical observations in the training and test sets. To avoid this, all splits are grouped by day.
-
-- **Chronological split (primary for deployment realism).** Train on the earliest days, validate on the next day, and test on the latest approximately 30% of days. This reflects how a model might be used in practice and captures a real distribution shift: several containers present in the earlier Bank days are absent from the test period.
-- **Leave-two-days-out cross-validation (primary for statistical power).** Each fold holds out two days for testing (5 folds for Bank, 8 for Telecom). The last remaining day serves as the validation set. We pool out-of-fold predictions across folds before calculating PR-AUC because some Telecom folds contain few or no fault events. Folds with no events are reported using their false-alarm rate only. 
-
-### Windowing, Scaling, and Feature Selection
-
-We fit all preprocessing steps using only the training days in each fold:
-
-- **Scaling.** We standardize each feature using the training median and interquartile range. These measures are robust to the heavy-tailed distributions common in KPI data. We then clip values to ±10.
-- **Feature selection.** We retain the *k* features with the highest ANOVA F-statistic against the training labels (*k* = 128 in the standard configuration). Selecting features within each fold prevents test labels from influencing which features are used.
-- **Windows.** Each sample is a tensor of shape $L \times k$, covering minutes $[t - L + 1, t]$, with $L = 60$ by default.
-- **Class imbalance.** We keep all positive training windows and subsample negatives to a 5:1 ratio in the standard configuration. Validation and test sets are never subsampled.
-
-### Models
-
-Models that use telemetry receive the same input windows. Tabular models use six summary statistics for each feature: mean, standard deviation, minimum, maximum, last value, and least-squares slope. Sequence models use the full window.
-
-| # | Model | Input | Role |
-|---|---|---|---|
-| 1 | **Prior** — constant training base rate | None | Floor: any useful model should exceed it |
-| 2 | **Time-of-day** — logistic regression on sine and cosine of minute of day | Clock only | Control for daily rhythm, especially at long horizons |
-| 3 | **Logistic regression** (L2, class-balanced) | Window statistics | Linear classical baseline |
-| 4 | **Random forest** (class-balanced) | Window statistics | Bagged-tree classical baseline |
-| 5 | **Gradient boosting** (XGBoost, `scale_pos_weight`) | Window statistics | Strong classical baseline on tabular data |
-| 6 | **1D-CNN** (two convolution layers, global max pooling) | Raw window | Tests for local temporal patterns without recurrence |
-| 7 | **LSTM** (hidden size 64, dropout 0.2, last hidden state → linear head) | Raw window | Model under test |
-| 8 | **GRU** (same configuration as the LSTM) | Raw window | Tests whether the LSTM’s gating structure is needed |
-| 9 | **BiLSTM with attention** | Raw window | Tests whether bidirectional context with learned weighting adds value |
-
-**LSTM.** An LSTM [@Hochreiter1997] maintains a cell state $c_t$, controlled by input, forget, and output gates:
-
-$$
-\begin{aligned}
-i_t &= \sigma(W_i x_t + U_i h_{t-1} + b_i), &
-f_t &= \sigma(W_f x_t + U_f h_{t-1} + b_f), &
-o_t &= \sigma(W_o x_t + U_o h_{t-1} + b_o),\\
-\tilde{c}_t &= \tanh(W_c x_t + U_c h_{t-1} + b_c), &
-c_t &= f_t \odot c_{t-1} + i_t \odot \tilde{c}_t, &
-h_t &= o_t \odot \tanh(c_t).
-\end{aligned}
-$$
-
-The final hidden state $h_t$ passes through dropout and a linear layer to produce a failure logit. The gates allow the network to retain or discard information across the 60-minute window. This lets us test whether the order of observations provides predictive information beyond the summary statistics. The GRU and BiLSTM-with-attention models test the contributions of gating design and bidirectional context, respectively. Prior comparisons of LSTM variants found that many perform similarly, making the GRU a useful control [@Greff2017].
-
-**Training of neural models.** Neural models use Adam with a learning rate of $10^{-3}$, weight decay of $10^{-5}$, a batch size of 128, and binary cross-entropy. The positive-class weight is set equal to the negative-to-positive ratio. Training uses gradient clipping with a norm of 5, up to 15 epochs (25 in the full configuration), and early stopping with a patience of 4 based on validation PR-AUC. The best validation checkpoint is restored before testing.
-
-**Hyperparameter tuning.** Each model family will receive the same budget of 20 random-search trials. Trials will be selected using validation PR-AUC at $H = 5$ in the chronological split. The selected configuration will then be fixed across horizons and folds. The equal budget helps make performance comparisons fair. Neural models will be trained with three random seeds, and results will be reported as the mean and standard deviation.
-
-```{r}
-
-```
-
-### Conclusion
-
--   Summarize your key findings.
-
--   Discuss the implications of your results.
+The output of this stage, for each system, is a cleaned minute-by-feature table, a
+label table with one column per horizon, and a mask of usable minutes. These are the
+inputs to the windowing, scaling and feature-selection steps described in the
+Methods section, and to the data exploration that follows.
 
 ## References
