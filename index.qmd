@@ -50,8 +50,8 @@ Previous research is supportive of using LSTM models in the analysis of sequenti
 [@Gonzalez2018] showed that LSTM networks can be used in modeling nonlinear systems,
 while [@ErgenKozat2020] used LSTM-based methods for anomaly detection in data sequences
 with variable length. Other studies applied LSTMs to telemetry data obtained from computer
-systems. [@MudgalWouhaybi2024] used a combined LSTM encoder in anomaly detection methods;
-these include Isolation Forest, used to identify PC system failures from CPU, memory, disk,
+systems. [@MudgalWouhaybi2024] used a combined LSTM encoder in anomaly detection methods.
+These include Isolation Forest, used to identify PC system failures from CPU, memory, disk,
 temperature, and system data. This study obtained results that suggested LSTM-based telemetry
 analysis can provide useful results for system-failure detection.
 
@@ -68,23 +68,22 @@ of multiple telemetry sources in improving early failure prediction performance.
 
 ## Methods
 
-A Long Short-Term Memory (LSTM) network is a type of recurrent neural network
-(RNN) designed to learn from ordered sequences of data. It was introduced by
-@Hochreiter1997 to solve a specific problem: ordinary
-RNNs struggle to learn relationships between events that are far apart in a
-sequence. An LSTM adds a separate *memory cell* to each unit of the network,
-together with three *gates* that learn when to write new information into that
-memory, when to erase it, and when to read from it. Because the cell can carry
-information forward almost unchanged, an LSTM can connect a signal at the start
-of a sequence to an outcome at the end of it.
+A Long Short-Term Memory (LSTM) network is a type of recurrent neural network (RNN)
+designed to learn from sequential data while retaining useful information over time.
+As it processes each time step, the LSTM updates a cell state that carries information
+forward. Three gates control this process: the forget gate determines what information
+to retain, the input gate determines what new information to add, and the output gate
+determines what information to expose to the next time step. This gating structure
+helps the network learn which patterns of change over time are useful for making
+predictions [@Hochreiter1997].
 
-That property is the reason we chose the LSTM for this study. A software failure
-is often preceded by gradual changes in telemetry — memory slowly filling, log
-files growing, CPU load drifting — that can begin many minutes before the failure
-itself. The model needs to look at a stretch of recent history, remember what was
-unusual about it, and decide whether a failure is about to happen. In this section
-we describe how the LSTM works, the assumptions it makes, how the OpenRCA telemetry
-is shaped into the input it needs, and how the model is fitted.
+We chose an LSTM because it can learn from the order of telemetry measurements over
+time. Some faults may be preceded by gradual changes in metrics, such as increasing
+memory use or CPU utilization that remains elevated. By processing a recent sequence
+of measurements, the model can learn whether these patterns help predict a fault before
+it begins. This section explains how the LSTM processes sequences, the assumptions
+behind our modeling approach, how we prepare OpenRCA telemetry for the model, and how
+we train it.
 
 ### Recurrent Neural Networks and the Vanishing Gradient
 
@@ -110,8 +109,8 @@ $$ {#eq-bptt}
 
 When the terms in this product are smaller than one, the gradient shrinks
 exponentially as $k$ grows (it *vanishes*); when they are larger than one, it grows
-exponentially (it *explodes*) [@Bengio1994; @Pascanu2013]. In practice a plain RNN
-therefore learns only short-range patterns. For our problem this is a serious
+exponentially (it *explodes*) [@Bengio1994; @Pascanu2013]. In practice, a plain RNN
+therefore learns only short-range patterns. For our problem, this is a serious
 limitation: an early warning sign 20 minutes before a fault is 20 steps back in the
 sequence.
 
@@ -142,7 +141,7 @@ where:
   "block" and a value near 1 means "let through".
 - $\tilde{c}_t$ is the **candidate memory**: new information that could be written
   to the cell. The $\tanh$ function keeps it between $-1$ and $1$.
-- $W_\ast$ are the input weight matrices, $U_\ast$ are the recurrent weight matrices
+- $W_\ast$ are the input weight matrices, $U_\ast$ are the recurrent weight matrices, 
   and $b_\ast$ are bias vectors, one set for each gate and the candidate.
 - $\odot$ is element-wise (Hadamard) multiplication.
 
@@ -159,7 +158,7 @@ where:
 
 **Why this fixes the vanishing gradient.** The key line in @eq-lstm is the cell
 update $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$. It is *additive*, not a
-repeated squashing like @eq-rnn. Along this path the gradient from one step to the
+repeated squashing like @eq-rnn. Along this path, the gradient from one step to the
 previous is
 
 $$
@@ -188,7 +187,7 @@ $$
 4\left(dk + d^2 + d\right)
 $$
 
-trainable parameters. In this project the input has $k = 128$ selected telemetry
+trainable parameters. In this project, the input has $k = 128$ selected telemetry
 features and the LSTM has $d = 64$ hidden units, which gives
 $4(64 \cdot 128 + 64^2 + 64) = 49{,}408$ parameters in the LSTM layer. (PyTorch keeps
 two bias vectors per gate, which adds another $4d = 256$.) The prediction layer
@@ -200,8 +199,8 @@ weights are applied at every minute.
 
 To make @eq-lstm concrete, consider a toy LSTM with $d = 1$ hidden unit that watches
 $k = 2$ scaled telemetry features of one container: CPU usage and memory usage. At
-the previous minute the network's state was $h_{t-1} = 0.2$ and $c_{t-1} = 0.5$. At
-the current minute CPU usage spikes while memory is normal:
+the previous minute, the network's state was $h_{t-1} = 0.2$ and $c_{t-1} = 0.5$. At
+the current minute, CPU usage spikes while memory is normal:
 
 $$
 x_t = \begin{bmatrix} \text{CPU} \\ \text{Memory} \end{bmatrix}
@@ -319,14 +318,14 @@ overfitting:
 
 The data come from **OpenRCA** [@xu2025openrca], a public benchmark released by
 Microsoft for root-cause analysis of software failures. OpenRCA collects telemetry
-from three enterprise microservice systems — **Bank**, **Telecom** and **Market**
-(the last split into two deployments, `cloudbed-1` and `cloudbed-2`) — into which
+from three enterprise microservice systems: **Bank**, **Telecom** and **Market**
+(the last split into two deployments, `cloudbed-1` and `cloudbed-2`), into which
 engineers deliberately injected faults such as CPU exhaustion, memory leaks and
 network delays. For every system, OpenRCA provides:
 
 - **Telemetry**, organised into one folder per day, with three modalities:
   - **metrics** — numeric key performance indicators (KPIs) such as CPU use, memory
-    use, response time and request counts, sampled every few seconds to minutes;
+    use, response time, and request counts, sampled every few seconds to minutes;
   - **logs** — text messages written by the services;
   - **traces** — records of individual requests travelling between services.
 - **A fault record** (`record.csv`) listing every injected fault with its start
