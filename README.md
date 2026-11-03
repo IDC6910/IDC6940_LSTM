@@ -3,7 +3,6 @@
 ## Group
 
 - Duc Nguyen
-- Cameron Ball
 - Luis Madrigal
 
 ## About
