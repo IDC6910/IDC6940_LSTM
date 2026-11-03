@@ -135,7 +135,7 @@ where:
 
 - $x_t$ is the input vector at time $t$: the telemetry readings for one minute.
 - $h_{t-1}$ is the hidden state from the previous minute; $h_t$ is the new one.
-- $c_{t-1}$ and $c_t$ are the old and new **cell states** — the long-term memory.
+- $c_{t-1}$ and $c_t$ are the old and new **cell states**: the long-term memory.
 - $f_t$, $i_t$, $o_t$ are the **gates**. Each is a vector of numbers between 0 and 1
   produced by the logistic sigmoid $\sigma(z) = 1/(1+e^{-z})$. A value near 0 means
   "block" and a value near 1 means "let through".
@@ -153,7 +153,7 @@ where:
 - The **input gate** $i_t$ decides how much of the candidate $\tilde{c}_t$ is written
   into memory. This lets the network ignore minutes that carry no useful information.
 - The **output gate** $o_t$ decides how much of the memory is exposed in the hidden
-  state $h_t$, which is what the next step — and eventually the prediction layer —
+  state $h_t$, which is what the next step, and eventually the prediction layer,
   sees.
 
 **Why this fixes the vanishing gradient.** The key line in @eq-lstm is the cell
@@ -216,7 +216,7 @@ Suppose training has produced the following weights:
 | output $o$ | $[\,0.4,\; 0.2\,]$ | 0.6 | 0.2 |
 | candidate $\tilde{c}$ | $[\,0.9,\; 0.3\,]$ | 0.4 | $-0.1$ |
 
-**Step 1 — gates.** For the forget gate,
+**Step 1: gates.** For the forget gate,
 
 $$
 f_t = \sigma(0.6 \cdot 1.5 - 0.2 \cdot 0.3 + 0.5 \cdot 0.2 + 1.0) = \sigma(1.94) = 0.874 .
@@ -230,7 +230,7 @@ o_t = \sigma(0.98) = 0.727, \qquad
 \tilde{c}_t = \tanh(1.42) = 0.890 .
 $$
 
-**Step 2 — update the memory.**
+**Step 2: update the memory.**
 
 $$
 c_t = \underbrace{0.874 \times 0.5}_{\text{kept from before}}
@@ -238,7 +238,7 @@ c_t = \underbrace{0.874 \times 0.5}_{\text{kept from before}}
     = 0.437 + 0.698 = 1.135
 $$
 
-**Step 3 — produce the output.**
+**Step 3: produce the output.**
 
 $$
 h_t = 0.727 \times \tanh(1.135) = 0.727 \times 0.813 = 0.591
@@ -324,10 +324,10 @@ engineers deliberately injected faults such as CPU exhaustion, memory leaks and
 network delays. For every system, OpenRCA provides:
 
 - **Telemetry**, organised into one folder per day, with three modalities:
-  - **metrics** — numeric key performance indicators (KPIs) such as CPU use, memory
+  - **metrics**: numeric key performance indicators (KPIs) such as CPU use, memory
     use, response time, and request counts, sampled every few seconds to minutes;
-  - **logs** — text messages written by the services;
-  - **traces** — records of individual requests travelling between services.
+  - **logs**: text messages written by the services;
+  - **traces**: records of individual requests travelling between services.
 - **A fault record** (`record.csv`) listing every injected fault with its start
   time, the component it was injected into, and the type of fault.
 
@@ -337,8 +337,8 @@ network delays. For every system, OpenRCA provides:
 1. Each is a single, self-contained system with one fault record, so the telemetry
    and the labels line up directly. Market is split into two separate deployments
    that would each need their own pipeline.
-2. They are very different from each other — different business domains, numbers of
-   components, monitoring tools and time periods — so a result that holds on both
+2. They are very different from each other (different business domains, numbers of
+   components, monitoring tools and time periods), so a result that holds on both
    is more convincing than a result on one.
 3. Metrics are numeric time series that can be placed on a common one-minute grid,
    which is the input the LSTM needs. Logs and traces would first require text
@@ -386,7 +386,7 @@ The **metric files** come in two layouts:
 
 : Layouts of the metric files. {#tbl-metric-layout}
 
-Each combination of a component and a KPI — for example `Tomcat04 ‖ CPU utilisation` —
+Each combination of a component and a KPI, for example `Tomcat04 ‖ CPU utilisation`,
 is one **time series**, and becomes one input feature for the model.
 
 ### Load Data
@@ -454,8 +454,8 @@ Bank has faults on 9 of its 10 days and Telecom on 11 of its 15 days. The days w
 telemetry but **no recorded faults** (Bank 2021-03-05; Telecom 2020-04-20 to
 2020-04-23) are kept in the data as fault-free periods.
 
-The metric telemetry is much larger — about 16 GB for Telecom and roughly 90 MB per
-day for Bank — so it is not stored in this repository. It is read day by day in Python
+The metric telemetry is much larger (about 16 GB for Telecom and roughly 90 MB per
+day for Bank), so it is not stored in this repository. It is read day by day in Python
 with pandas. The function below reads one metric file and turns it into a table with
 one row per minute and one column per `component‖KPI` series; the long and wide
 layouts in @tbl-metric-layout are handled separately:
@@ -559,7 +559,7 @@ Two further rules decide which minutes can be used at all:
   rewarded for "predicting" a fault that is already visible in the telemetry.
 - **Complete windows only.** A minute is used only if its full 60-minute look-back
   window *and* its $H$-minute look-ahead both lie on the same day. The recorded days
-  are not consecutive — for example, Bank jumps from 2021-03-12 to 2021-03-23 — so a
+  are not consecutive; for example, Bank jumps from 2021-03-12 to 2021-03-23, so a
   window that crossed midnight would join two unrelated days together.
 
 These rules remove the first hour of every day and a few minutes around each fault.
