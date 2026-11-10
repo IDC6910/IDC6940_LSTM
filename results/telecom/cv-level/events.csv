@@ -1,0 +1,307 @@
+horizon,onset,component,reason,detected,lead_min,fold
+1,2020-04-11 00:05:00,docker_003,CPU fault,False,,cv1
+1,2020-04-11 01:40:00,docker_004,CPU fault,True,1.0,cv1
+1,2020-04-11 02:15:00,db_007,db connection limit,False,,cv1
+1,2020-04-11 02:50:00,docker_002,CPU fault,False,,cv1
+1,2020-04-11 04:40:00,docker_008,CPU fault,False,,cv1
+1,2020-04-11 05:45:00,db_003,db close,True,1.0,cv1
+1,2020-05-22 00:07:00,db_003,db close,False,,cv3
+1,2020-05-22 00:48:00,docker_001,CPU fault,False,,cv3
+1,2020-05-22 01:48:00,os_018,network delay,True,1.0,cv3
+1,2020-05-22 02:18:00,docker_005,CPU fault,True,1.0,cv3
+1,2020-05-23 00:05:00,docker_004,CPU fault,False,,cv4
+1,2020-05-23 00:40:00,db_003,db connection limit,False,,cv4
+1,2020-05-23 01:16:00,os_021,network loss,False,,cv4
+1,2020-05-23 01:52:00,os_009,network loss,False,,cv4
+1,2020-05-23 03:36:00,os_021,network delay,False,,cv4
+1,2020-05-23 04:47:00,docker_006,CPU fault,False,,cv4
+1,2020-05-24 01:47:00,db_007,db close,False,,cv4
+1,2020-05-24 03:17:00,docker_003,CPU fault,False,,cv4
+1,2020-05-24 04:17:00,docker_006,CPU fault,False,,cv4
+1,2020-05-25 01:47:00,os_020,network delay,False,,cv5
+1,2020-05-25 03:47:00,os_017,network loss,False,,cv5
+1,2020-05-25 04:47:00,db_003,db close,False,,cv5
+1,2020-05-26 02:09:00,db_007,db connection limit,False,,cv5
+1,2020-05-26 02:39:00,docker_008,CPU fault,False,,cv5
+1,2020-05-26 03:09:00,os_021,network delay,False,,cv5
+1,2020-05-26 03:39:00,os_018,network loss,False,,cv5
+1,2020-05-26 04:15:00,os_020,network delay,False,,cv5
+1,2020-05-26 04:45:00,os_001,network delay,False,,cv5
+1,2020-05-26 05:15:00,docker_002,CPU fault,False,,cv5
+1,2020-05-27 00:23:00,os_018,network delay,False,,cv6
+1,2020-05-27 00:53:00,os_017,network delay,False,,cv6
+1,2020-05-27 01:23:00,docker_006,CPU fault,True,1.0,cv6
+1,2020-05-27 01:53:00,db_003,db connection limit,True,1.0,cv6
+1,2020-05-27 02:23:00,db_007,db close,True,1.0,cv6
+1,2020-05-27 02:53:00,db_007,db connection limit,True,1.0,cv6
+1,2020-05-27 05:09:00,docker_001,CPU fault,False,,cv6
+1,2020-05-27 05:39:00,os_021,network delay,True,1.0,cv6
+1,2020-05-28 00:47:00,docker_001,CPU fault,False,,cv6
+1,2020-05-28 03:47:00,os_018,network loss,True,1.0,cv6
+1,2020-05-29 02:11:00,db_003,db connection limit,True,1.0,cv7
+1,2020-05-29 02:41:00,docker_008,CPU fault,True,1.0,cv7
+1,2020-05-29 03:41:00,docker_001,CPU fault,True,1.0,cv7
+1,2020-05-30 00:13:00,os_021,network loss,False,,cv7
+1,2020-05-30 02:43:00,os_009,network delay,False,,cv7
+1,2020-05-30 03:43:00,os_020,network delay,False,,cv7
+1,2020-05-30 04:13:00,docker_002,CPU fault,False,,cv7
+1,2020-05-30 05:13:00,os_018,network loss,False,,cv7
+1,2020-05-31 02:47:00,os_021,network delay,False,,cv8
+1,2020-05-31 03:17:00,os_017,network delay,False,,cv8
+1,2020-05-31 03:47:00,db_003,db connection limit,False,,cv8
+1,2020-05-31 04:17:00,docker_004,CPU fault,False,,cv8
+3,2020-04-11 00:05:00,docker_003,CPU fault,False,,cv1
+3,2020-04-11 01:40:00,docker_004,CPU fault,False,,cv1
+3,2020-04-11 02:15:00,db_007,db connection limit,False,,cv1
+3,2020-04-11 02:50:00,docker_002,CPU fault,False,,cv1
+3,2020-04-11 04:40:00,docker_008,CPU fault,False,,cv1
+3,2020-04-11 05:45:00,db_003,db close,True,3.0,cv1
+3,2020-05-22 00:07:00,db_003,db close,False,,cv3
+3,2020-05-22 00:48:00,docker_001,CPU fault,False,,cv3
+3,2020-05-22 01:48:00,os_018,network delay,True,3.0,cv3
+3,2020-05-22 02:18:00,docker_005,CPU fault,True,3.0,cv3
+3,2020-05-23 00:05:00,docker_004,CPU fault,False,,cv4
+3,2020-05-23 00:40:00,db_003,db connection limit,False,,cv4
+3,2020-05-23 01:16:00,os_021,network loss,False,,cv4
+3,2020-05-23 01:52:00,os_009,network loss,False,,cv4
+3,2020-05-23 03:36:00,os_021,network delay,False,,cv4
+3,2020-05-23 04:47:00,docker_006,CPU fault,False,,cv4
+3,2020-05-24 01:47:00,db_007,db close,True,3.0,cv4
+3,2020-05-24 03:17:00,docker_003,CPU fault,True,3.0,cv4
+3,2020-05-24 04:17:00,docker_006,CPU fault,True,3.0,cv4
+3,2020-05-25 01:47:00,os_020,network delay,False,,cv5
+3,2020-05-25 03:47:00,os_017,network loss,False,,cv5
+3,2020-05-25 04:47:00,db_003,db close,False,,cv5
+3,2020-05-26 02:09:00,db_007,db connection limit,True,3.0,cv5
+3,2020-05-26 02:39:00,docker_008,CPU fault,True,3.0,cv5
+3,2020-05-26 03:09:00,os_021,network delay,True,3.0,cv5
+3,2020-05-26 03:39:00,os_018,network loss,True,3.0,cv5
+3,2020-05-26 04:15:00,os_020,network delay,True,3.0,cv5
+3,2020-05-26 04:45:00,os_001,network delay,True,3.0,cv5
+3,2020-05-26 05:15:00,docker_002,CPU fault,True,3.0,cv5
+3,2020-05-27 00:23:00,os_018,network delay,False,,cv6
+3,2020-05-27 00:53:00,os_017,network delay,False,,cv6
+3,2020-05-27 01:23:00,docker_006,CPU fault,True,3.0,cv6
+3,2020-05-27 01:53:00,db_003,db connection limit,True,3.0,cv6
+3,2020-05-27 02:23:00,db_007,db close,True,3.0,cv6
+3,2020-05-27 02:53:00,db_007,db connection limit,True,3.0,cv6
+3,2020-05-27 05:09:00,docker_001,CPU fault,True,3.0,cv6
+3,2020-05-27 05:39:00,os_021,network delay,True,3.0,cv6
+3,2020-05-28 00:47:00,docker_001,CPU fault,False,,cv6
+3,2020-05-28 03:47:00,os_018,network loss,True,3.0,cv6
+3,2020-05-29 02:11:00,db_003,db connection limit,True,3.0,cv7
+3,2020-05-29 02:41:00,docker_008,CPU fault,True,3.0,cv7
+3,2020-05-29 03:41:00,docker_001,CPU fault,True,3.0,cv7
+3,2020-05-30 00:13:00,os_021,network loss,False,,cv7
+3,2020-05-30 02:43:00,os_009,network delay,True,3.0,cv7
+3,2020-05-30 03:43:00,os_020,network delay,True,3.0,cv7
+3,2020-05-30 04:13:00,docker_002,CPU fault,True,3.0,cv7
+3,2020-05-30 05:13:00,os_018,network loss,True,3.0,cv7
+3,2020-05-31 02:47:00,os_021,network delay,False,,cv8
+3,2020-05-31 03:17:00,os_017,network delay,False,,cv8
+3,2020-05-31 03:47:00,db_003,db connection limit,False,,cv8
+3,2020-05-31 04:17:00,docker_004,CPU fault,False,,cv8
+5,2020-04-11 00:05:00,docker_003,CPU fault,False,,cv1
+5,2020-04-11 01:40:00,docker_004,CPU fault,False,,cv1
+5,2020-04-11 02:15:00,db_007,db connection limit,False,,cv1
+5,2020-04-11 02:50:00,docker_002,CPU fault,False,,cv1
+5,2020-04-11 04:40:00,docker_008,CPU fault,False,,cv1
+5,2020-04-11 05:45:00,db_003,db close,False,,cv1
+5,2020-05-22 00:07:00,db_003,db close,False,,cv3
+5,2020-05-22 00:48:00,docker_001,CPU fault,False,,cv3
+5,2020-05-22 01:48:00,os_018,network delay,True,5.0,cv3
+5,2020-05-22 02:18:00,docker_005,CPU fault,True,5.0,cv3
+5,2020-05-23 00:05:00,docker_004,CPU fault,False,,cv4
+5,2020-05-23 00:40:00,db_003,db connection limit,False,,cv4
+5,2020-05-23 01:16:00,os_021,network loss,False,,cv4
+5,2020-05-23 01:52:00,os_009,network loss,False,,cv4
+5,2020-05-23 03:36:00,os_021,network delay,False,,cv4
+5,2020-05-23 04:47:00,docker_006,CPU fault,False,,cv4
+5,2020-05-24 01:47:00,db_007,db close,True,5.0,cv4
+5,2020-05-24 03:17:00,docker_003,CPU fault,True,5.0,cv4
+5,2020-05-24 04:17:00,docker_006,CPU fault,True,5.0,cv4
+5,2020-05-25 01:47:00,os_020,network delay,False,,cv5
+5,2020-05-25 03:47:00,os_017,network loss,False,,cv5
+5,2020-05-25 04:47:00,db_003,db close,False,,cv5
+5,2020-05-26 02:09:00,db_007,db connection limit,True,5.0,cv5
+5,2020-05-26 02:39:00,docker_008,CPU fault,True,5.0,cv5
+5,2020-05-26 03:09:00,os_021,network delay,True,5.0,cv5
+5,2020-05-26 03:39:00,os_018,network loss,True,5.0,cv5
+5,2020-05-26 04:15:00,os_020,network delay,True,5.0,cv5
+5,2020-05-26 04:45:00,os_001,network delay,True,5.0,cv5
+5,2020-05-26 05:15:00,docker_002,CPU fault,True,5.0,cv5
+5,2020-05-27 00:23:00,os_018,network delay,False,,cv6
+5,2020-05-27 00:53:00,os_017,network delay,False,,cv6
+5,2020-05-27 01:23:00,docker_006,CPU fault,True,5.0,cv6
+5,2020-05-27 01:53:00,db_003,db connection limit,True,3.0,cv6
+5,2020-05-27 02:23:00,db_007,db close,True,5.0,cv6
+5,2020-05-27 02:53:00,db_007,db connection limit,True,5.0,cv6
+5,2020-05-27 05:09:00,docker_001,CPU fault,True,5.0,cv6
+5,2020-05-27 05:39:00,os_021,network delay,True,5.0,cv6
+5,2020-05-28 00:47:00,docker_001,CPU fault,False,,cv6
+5,2020-05-28 03:47:00,os_018,network loss,True,5.0,cv6
+5,2020-05-29 02:11:00,db_003,db connection limit,True,5.0,cv7
+5,2020-05-29 02:41:00,docker_008,CPU fault,True,5.0,cv7
+5,2020-05-29 03:41:00,docker_001,CPU fault,True,5.0,cv7
+5,2020-05-30 00:13:00,os_021,network loss,False,,cv7
+5,2020-05-30 02:43:00,os_009,network delay,True,5.0,cv7
+5,2020-05-30 03:43:00,os_020,network delay,True,5.0,cv7
+5,2020-05-30 04:13:00,docker_002,CPU fault,True,5.0,cv7
+5,2020-05-30 05:13:00,os_018,network loss,True,5.0,cv7
+5,2020-05-31 02:47:00,os_021,network delay,False,,cv8
+5,2020-05-31 03:17:00,os_017,network delay,False,,cv8
+5,2020-05-31 03:47:00,db_003,db connection limit,False,,cv8
+5,2020-05-31 04:17:00,docker_004,CPU fault,False,,cv8
+10,2020-04-11 00:05:00,docker_003,CPU fault,False,,cv1
+10,2020-04-11 01:40:00,docker_004,CPU fault,False,,cv1
+10,2020-04-11 02:15:00,db_007,db connection limit,False,,cv1
+10,2020-04-11 02:50:00,docker_002,CPU fault,False,,cv1
+10,2020-04-11 04:40:00,docker_008,CPU fault,False,,cv1
+10,2020-04-11 05:45:00,db_003,db close,False,,cv1
+10,2020-05-22 00:07:00,db_003,db close,False,,cv3
+10,2020-05-22 00:48:00,docker_001,CPU fault,False,,cv3
+10,2020-05-22 01:48:00,os_018,network delay,True,10.0,cv3
+10,2020-05-22 02:18:00,docker_005,CPU fault,True,10.0,cv3
+10,2020-05-23 00:05:00,docker_004,CPU fault,False,,cv4
+10,2020-05-23 00:40:00,db_003,db connection limit,False,,cv4
+10,2020-05-23 01:16:00,os_021,network loss,False,,cv4
+10,2020-05-23 01:52:00,os_009,network loss,False,,cv4
+10,2020-05-23 03:36:00,os_021,network delay,False,,cv4
+10,2020-05-23 04:47:00,docker_006,CPU fault,False,,cv4
+10,2020-05-24 01:47:00,db_007,db close,True,10.0,cv4
+10,2020-05-24 03:17:00,docker_003,CPU fault,True,10.0,cv4
+10,2020-05-24 04:17:00,docker_006,CPU fault,True,10.0,cv4
+10,2020-05-25 01:47:00,os_020,network delay,False,,cv5
+10,2020-05-25 03:47:00,os_017,network loss,False,,cv5
+10,2020-05-25 04:47:00,db_003,db close,False,,cv5
+10,2020-05-26 02:09:00,db_007,db connection limit,True,10.0,cv5
+10,2020-05-26 02:39:00,docker_008,CPU fault,True,10.0,cv5
+10,2020-05-26 03:09:00,os_021,network delay,True,10.0,cv5
+10,2020-05-26 03:39:00,os_018,network loss,True,10.0,cv5
+10,2020-05-26 04:15:00,os_020,network delay,True,10.0,cv5
+10,2020-05-26 04:45:00,os_001,network delay,True,10.0,cv5
+10,2020-05-26 05:15:00,docker_002,CPU fault,True,10.0,cv5
+10,2020-05-27 00:23:00,os_018,network delay,False,,cv6
+10,2020-05-27 00:53:00,os_017,network delay,False,,cv6
+10,2020-05-27 01:23:00,docker_006,CPU fault,True,10.0,cv6
+10,2020-05-27 01:53:00,db_003,db connection limit,True,10.0,cv6
+10,2020-05-27 02:23:00,db_007,db close,True,10.0,cv6
+10,2020-05-27 02:53:00,db_007,db connection limit,True,10.0,cv6
+10,2020-05-27 05:09:00,docker_001,CPU fault,True,10.0,cv6
+10,2020-05-27 05:39:00,os_021,network delay,True,10.0,cv6
+10,2020-05-28 00:47:00,docker_001,CPU fault,False,,cv6
+10,2020-05-28 03:47:00,os_018,network loss,True,10.0,cv6
+10,2020-05-29 02:11:00,db_003,db connection limit,True,10.0,cv7
+10,2020-05-29 02:41:00,docker_008,CPU fault,True,10.0,cv7
+10,2020-05-29 03:41:00,docker_001,CPU fault,True,10.0,cv7
+10,2020-05-30 00:13:00,os_021,network loss,False,,cv7
+10,2020-05-30 02:43:00,os_009,network delay,True,10.0,cv7
+10,2020-05-30 03:43:00,os_020,network delay,True,10.0,cv7
+10,2020-05-30 04:13:00,docker_002,CPU fault,True,10.0,cv7
+10,2020-05-30 05:13:00,os_018,network loss,True,10.0,cv7
+10,2020-05-31 02:47:00,os_021,network delay,False,,cv8
+10,2020-05-31 03:17:00,os_017,network delay,False,,cv8
+10,2020-05-31 03:47:00,db_003,db connection limit,False,,cv8
+10,2020-05-31 04:17:00,docker_004,CPU fault,False,,cv8
+15,2020-04-11 00:05:00,docker_003,CPU fault,False,,cv1
+15,2020-04-11 01:40:00,docker_004,CPU fault,False,,cv1
+15,2020-04-11 02:15:00,db_007,db connection limit,False,,cv1
+15,2020-04-11 02:50:00,docker_002,CPU fault,False,,cv1
+15,2020-04-11 04:40:00,docker_008,CPU fault,False,,cv1
+15,2020-04-11 05:45:00,db_003,db close,False,,cv1
+15,2020-05-22 00:07:00,db_003,db close,False,,cv3
+15,2020-05-22 00:48:00,docker_001,CPU fault,False,,cv3
+15,2020-05-22 01:48:00,os_018,network delay,True,15.0,cv3
+15,2020-05-22 02:18:00,docker_005,CPU fault,True,15.0,cv3
+15,2020-05-23 00:05:00,docker_004,CPU fault,False,,cv4
+15,2020-05-23 00:40:00,db_003,db connection limit,False,,cv4
+15,2020-05-23 01:16:00,os_021,network loss,False,,cv4
+15,2020-05-23 01:52:00,os_009,network loss,False,,cv4
+15,2020-05-23 03:36:00,os_021,network delay,False,,cv4
+15,2020-05-23 04:47:00,docker_006,CPU fault,False,,cv4
+15,2020-05-24 01:47:00,db_007,db close,True,15.0,cv4
+15,2020-05-24 03:17:00,docker_003,CPU fault,True,15.0,cv4
+15,2020-05-24 04:17:00,docker_006,CPU fault,True,15.0,cv4
+15,2020-05-25 01:47:00,os_020,network delay,False,,cv5
+15,2020-05-25 03:47:00,os_017,network loss,False,,cv5
+15,2020-05-25 04:47:00,db_003,db close,False,,cv5
+15,2020-05-26 02:09:00,db_007,db connection limit,True,15.0,cv5
+15,2020-05-26 02:39:00,docker_008,CPU fault,True,15.0,cv5
+15,2020-05-26 03:09:00,os_021,network delay,True,15.0,cv5
+15,2020-05-26 03:39:00,os_018,network loss,True,15.0,cv5
+15,2020-05-26 04:15:00,os_020,network delay,True,15.0,cv5
+15,2020-05-26 04:45:00,os_001,network delay,True,15.0,cv5
+15,2020-05-26 05:15:00,docker_002,CPU fault,True,15.0,cv5
+15,2020-05-27 00:23:00,os_018,network delay,False,,cv6
+15,2020-05-27 00:53:00,os_017,network delay,False,,cv6
+15,2020-05-27 01:23:00,docker_006,CPU fault,True,15.0,cv6
+15,2020-05-27 01:53:00,db_003,db connection limit,True,15.0,cv6
+15,2020-05-27 02:23:00,db_007,db close,True,15.0,cv6
+15,2020-05-27 02:53:00,db_007,db connection limit,True,15.0,cv6
+15,2020-05-27 05:09:00,docker_001,CPU fault,True,15.0,cv6
+15,2020-05-27 05:39:00,os_021,network delay,True,15.0,cv6
+15,2020-05-28 00:47:00,docker_001,CPU fault,False,,cv6
+15,2020-05-28 03:47:00,os_018,network loss,True,15.0,cv6
+15,2020-05-29 02:11:00,db_003,db connection limit,True,15.0,cv7
+15,2020-05-29 02:41:00,docker_008,CPU fault,True,15.0,cv7
+15,2020-05-29 03:41:00,docker_001,CPU fault,True,15.0,cv7
+15,2020-05-30 00:13:00,os_021,network loss,False,,cv7
+15,2020-05-30 02:43:00,os_009,network delay,True,15.0,cv7
+15,2020-05-30 03:43:00,os_020,network delay,True,15.0,cv7
+15,2020-05-30 04:13:00,docker_002,CPU fault,True,15.0,cv7
+15,2020-05-30 05:13:00,os_018,network loss,True,15.0,cv7
+15,2020-05-31 02:47:00,os_021,network delay,False,,cv8
+15,2020-05-31 03:17:00,os_017,network delay,False,,cv8
+15,2020-05-31 03:47:00,db_003,db connection limit,False,,cv8
+15,2020-05-31 04:17:00,docker_004,CPU fault,False,,cv8
+30,2020-04-11 00:05:00,docker_003,CPU fault,False,,cv1
+30,2020-04-11 01:40:00,docker_004,CPU fault,True,30.0,cv1
+30,2020-04-11 02:15:00,db_007,db connection limit,True,30.0,cv1
+30,2020-04-11 02:50:00,docker_002,CPU fault,True,30.0,cv1
+30,2020-04-11 04:40:00,docker_008,CPU fault,True,30.0,cv1
+30,2020-04-11 05:45:00,db_003,db close,True,30.0,cv1
+30,2020-05-22 00:07:00,db_003,db close,False,,cv3
+30,2020-05-22 00:48:00,docker_001,CPU fault,False,,cv3
+30,2020-05-22 01:48:00,os_018,network delay,True,30.0,cv3
+30,2020-05-22 02:18:00,docker_005,CPU fault,True,30.0,cv3
+30,2020-05-23 00:05:00,docker_004,CPU fault,False,,cv4
+30,2020-05-23 00:40:00,db_003,db connection limit,False,,cv4
+30,2020-05-23 01:16:00,os_021,network loss,False,,cv4
+30,2020-05-23 01:52:00,os_009,network loss,False,,cv4
+30,2020-05-23 03:36:00,os_021,network delay,False,,cv4
+30,2020-05-23 04:47:00,docker_006,CPU fault,False,,cv4
+30,2020-05-24 01:47:00,db_007,db close,True,30.0,cv4
+30,2020-05-24 03:17:00,docker_003,CPU fault,True,30.0,cv4
+30,2020-05-24 04:17:00,docker_006,CPU fault,True,30.0,cv4
+30,2020-05-25 01:47:00,os_020,network delay,False,,cv5
+30,2020-05-25 03:47:00,os_017,network loss,False,,cv5
+30,2020-05-25 04:47:00,db_003,db close,False,,cv5
+30,2020-05-26 02:09:00,db_007,db connection limit,True,30.0,cv5
+30,2020-05-26 02:39:00,docker_008,CPU fault,True,30.0,cv5
+30,2020-05-26 03:09:00,os_021,network delay,True,30.0,cv5
+30,2020-05-26 03:39:00,os_018,network loss,True,30.0,cv5
+30,2020-05-26 04:15:00,os_020,network delay,True,30.0,cv5
+30,2020-05-26 04:45:00,os_001,network delay,True,30.0,cv5
+30,2020-05-26 05:15:00,docker_002,CPU fault,True,30.0,cv5
+30,2020-05-27 00:23:00,os_018,network delay,False,,cv6
+30,2020-05-27 00:53:00,os_017,network delay,False,,cv6
+30,2020-05-27 01:23:00,docker_006,CPU fault,False,,cv6
+30,2020-05-27 01:53:00,db_003,db connection limit,True,9.0,cv6
+30,2020-05-27 02:23:00,db_007,db close,True,30.0,cv6
+30,2020-05-27 02:53:00,db_007,db connection limit,False,,cv6
+30,2020-05-27 05:09:00,docker_001,CPU fault,True,27.0,cv6
+30,2020-05-27 05:39:00,os_021,network delay,True,29.0,cv6
+30,2020-05-28 00:47:00,docker_001,CPU fault,False,,cv6
+30,2020-05-28 03:47:00,os_018,network loss,True,30.0,cv6
+30,2020-05-29 02:11:00,db_003,db connection limit,True,30.0,cv7
+30,2020-05-29 02:41:00,docker_008,CPU fault,True,30.0,cv7
+30,2020-05-29 03:41:00,docker_001,CPU fault,True,30.0,cv7
+30,2020-05-30 00:13:00,os_021,network loss,False,,cv7
+30,2020-05-30 02:43:00,os_009,network delay,True,30.0,cv7
+30,2020-05-30 03:43:00,os_020,network delay,True,30.0,cv7
+30,2020-05-30 04:13:00,docker_002,CPU fault,True,30.0,cv7
+30,2020-05-30 05:13:00,os_018,network loss,True,30.0,cv7
+30,2020-05-31 02:47:00,os_021,network delay,False,,cv8
+30,2020-05-31 03:17:00,os_017,network delay,False,,cv8
+30,2020-05-31 03:47:00,db_003,db connection limit,False,,cv8
+30,2020-05-31 04:17:00,docker_004,CPU fault,False,,cv8

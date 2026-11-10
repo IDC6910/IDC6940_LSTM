@@ -1,0 +1,16 @@
+feature,saliency
+os_014||node.Memory_used_pct,0.0019623807
+redis_011||middleware.Redis_key_count,0.0019566014
+os_014||node.Memory_used,0.0017673703
+redis_007||middleware.Redis_key_count,0.001701787
+redis_002||middleware.Redis_key_count,0.0016786268
+redis_010||middleware.used_memory_rss,0.0015674592
+os_013||node.Memory_available_pct,0.0015422469
+db_002||service.Proc_Used_Pct,0.0015218281
+db_005||service.TPS_Per_Sec,0.0015022473
+redis_003||middleware.Redis_key_count,0.0014575525
+os_014||node.Memory_available_pct,0.0014139012
+redis_006||middleware.Redis_key_count,0.0014056897
+db_002||service.Proc_User_Used_Pct,0.0013721826
+redis_010||middleware.Redis_key_count,0.0013472626
+os_013||node.Memory_available,0.0012941364

@@ -1,0 +1,817 @@
+horizon,onset,component,reason,detected,lead_min,fold
+1,2021-03-04 14:57:00,Mysql02,high memory usage,False,,cv1
+1,2021-03-04 18:09:00,Redis02,high memory usage,False,,cv1
+1,2021-03-04 19:22:00,Tomcat02,network latency,False,,cv1
+1,2021-03-04 01:26:00,MG02,high JVM CPU load,False,,cv1
+1,2021-03-04 13:46:00,MG02,high JVM CPU load,False,,cv1
+1,2021-03-04 21:06:00,IG01,high JVM CPU load,False,,cv1
+1,2021-03-04 06:20:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+1,2021-03-04 19:36:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+1,2021-03-04 22:00:00,MG01,JVM Out of Memory (OOM) Heap,False,,cv1
+1,2021-03-04 22:25:00,IG01,JVM Out of Memory (OOM) Heap,False,,cv1
+1,2021-03-04 19:49:00,Tomcat03,high disk I/O read usage,False,,cv1
+1,2021-03-04 07:01:00,Redis02,high CPU usage,False,,cv1
+1,2021-03-04 20:14:00,Redis02,high CPU usage,False,,cv1
+1,2021-03-04 00:34:00,MG01,high memory usage,False,,cv1
+1,2021-03-04 02:45:00,Mysql02,high memory usage,False,,cv1
+1,2021-03-04 05:31:00,Redis02,high memory usage,False,,cv1
+1,2021-03-06 06:20:00,Tomcat01,high memory usage,False,,cv2
+1,2021-03-06 00:53:00,Tomcat04,network latency,False,,cv2
+1,2021-03-06 14:46:00,Tomcat03,network latency,False,,cv2
+1,2021-03-06 18:52:00,apache02,network packet loss,False,,cv2
+1,2021-03-06 23:18:00,Tomcat01,network latency,False,,cv2
+1,2021-03-06 23:36:00,MG01,network latency,False,,cv2
+1,2021-03-07 00:32:00,MG02,network packet loss,False,,cv2
+1,2021-03-07 07:32:00,Tomcat02,network latency,False,,cv2
+1,2021-03-07 16:08:00,MG01,network latency,False,,cv2
+1,2021-03-07 16:29:00,Tomcat04,network packet loss,False,,cv2
+1,2021-03-07 18:59:00,apache02,network latency,False,,cv2
+1,2021-03-07 21:36:00,Tomcat01,network packet loss,False,,cv2
+1,2021-03-06 04:56:00,MG01,high disk I/O read usage,False,,cv2
+1,2021-03-06 15:19:00,IG02,high disk space usage,False,,cv2
+1,2021-03-07 03:21:00,Tomcat01,high disk I/O read usage,False,,cv2
+1,2021-03-07 15:41:00,Tomcat01,high disk I/O read usage,False,,cv2
+1,2021-03-06 02:00:00,Mysql01,high CPU usage,False,,cv2
+1,2021-03-06 03:36:00,IG01,high CPU usage,False,,cv2
+1,2021-03-06 20:44:00,Tomcat04,high CPU usage,False,,cv2
+1,2021-03-07 01:52:00,Redis02,high CPU usage,False,,cv2
+1,2021-03-07 06:35:00,IG02,high CPU usage,False,,cv2
+1,2021-03-07 08:11:00,Tomcat03,high CPU usage,False,,cv2
+1,2021-03-07 11:09:00,IG02,high CPU usage,False,,cv2
+1,2021-03-07 13:24:00,IG01,high CPU usage,False,,cv2
+1,2021-03-07 17:52:00,Tomcat01,high CPU usage,False,,cv2
+1,2021-03-07 12:36:00,Tomcat04,high memory usage,False,,cv2
+1,2021-03-07 03:59:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv2
+1,2021-03-09 08:13:00,apache02,network packet loss,True,1.0,cv3
+1,2021-03-09 09:18:00,IG02,network packet loss,False,,cv3
+1,2021-03-09 11:20:00,Tomcat01,network latency,True,1.0,cv3
+1,2021-03-09 13:10:00,MG02,network packet loss,False,,cv3
+1,2021-03-09 14:14:00,MG02,network latency,False,,cv3
+1,2021-03-09 15:25:00,Tomcat01,network packet loss,False,,cv3
+1,2021-03-09 16:56:00,MG02,network latency,True,1.0,cv3
+1,2021-03-09 19:14:00,Tomcat02,network latency,True,1.0,cv3
+1,2021-03-09 20:25:00,apache01,network packet loss,False,,cv3
+1,2021-03-09 21:07:00,apache01,network latency,False,,cv3
+1,2021-03-10 07:19:00,apache02,network latency,False,,cv3
+1,2021-03-10 10:43:00,Tomcat01,network packet loss,True,1.0,cv3
+1,2021-03-10 15:02:00,apache02,network packet loss,False,,cv3
+1,2021-03-10 15:19:00,apache02,network latency,False,,cv3
+1,2021-03-10 16:42:00,Tomcat01,network latency,False,,cv3
+1,2021-03-10 18:57:00,Tomcat03,network packet loss,False,,cv3
+1,2021-03-09 01:20:00,apache01,high disk I/O read usage,False,,cv3
+1,2021-03-09 05:11:00,IG02,high disk space usage,False,,cv3
+1,2021-03-09 15:45:00,Tomcat01,high disk I/O read usage,False,,cv3
+1,2021-03-09 17:39:00,apache01,high disk space usage,True,1.0,cv3
+1,2021-03-10 02:44:00,Tomcat01,high disk I/O read usage,False,,cv3
+1,2021-03-10 03:44:00,Tomcat04,high disk space usage,True,1.0,cv3
+1,2021-03-10 14:21:00,Tomcat02,high disk I/O read usage,False,,cv3
+1,2021-03-10 15:43:00,apache02,high disk I/O read usage,False,,cv3
+1,2021-03-10 22:03:00,IG02,high disk I/O read usage,False,,cv3
+1,2021-03-10 22:19:00,MG02,high disk I/O read usage,False,,cv3
+1,2021-03-09 09:57:00,Tomcat04,high CPU usage,False,,cv3
+1,2021-03-09 14:42:00,Redis02,high CPU usage,False,,cv3
+1,2021-03-09 18:08:00,IG02,high CPU usage,True,1.0,cv3
+1,2021-03-09 19:42:00,Tomcat03,high CPU usage,False,,cv3
+1,2021-03-09 22:32:00,IG02,high CPU usage,True,1.0,cv3
+1,2021-03-10 00:19:00,IG01,high CPU usage,False,,cv3
+1,2021-03-10 04:38:00,Tomcat01,high CPU usage,False,,cv3
+1,2021-03-10 08:30:00,apache01,high CPU usage,False,,cv3
+1,2021-03-09 23:53:00,Tomcat04,high memory usage,True,1.0,cv3
+1,2021-03-09 16:23:00,Tomcat02,JVM Out of Memory (OOM) Heap,True,1.0,cv3
+1,2021-03-10 17:51:00,Tomcat02,JVM Out of Memory (OOM) Heap,True,1.0,cv3
+1,2021-03-12 10:54:00,MG01,network packet loss,False,,cv4
+1,2021-03-12 12:13:00,Tomcat01,network packet loss,False,,cv4
+1,2021-03-12 14:03:00,MG02,network packet loss,False,,cv4
+1,2021-03-12 15:38:00,MG01,network packet loss,False,,cv4
+1,2021-03-12 16:26:00,apache02,network packet loss,True,1.0,cv4
+1,2021-03-12 22:35:00,Tomcat03,network packet loss,False,,cv4
+1,2021-03-12 23:33:00,apache02,network packet loss,False,,cv4
+1,2021-03-23 06:42:00,MG01,network packet loss,False,,cv4
+1,2021-03-23 14:24:00,Tomcat04,network packet loss,False,,cv4
+1,2021-03-23 14:50:00,MG01,network packet loss,False,,cv4
+1,2021-03-23 16:54:00,Tomcat04,network latency,False,,cv4
+1,2021-03-23 17:42:00,MG02,network latency,False,,cv4
+1,2021-03-23 18:03:00,MG01,network latency,False,,cv4
+1,2021-03-23 21:07:00,Tomcat04,network packet loss,False,,cv4
+1,2021-03-12 16:15:00,IG02,high disk I/O read usage,False,,cv4
+1,2021-03-12 10:24:00,IG02,high CPU usage,False,,cv4
+1,2021-03-12 15:10:00,MG01,high CPU usage,False,,cv4
+1,2021-03-12 17:14:00,Redis02,high CPU usage,False,,cv4
+1,2021-03-12 20:46:00,Redis01,high CPU usage,False,,cv4
+1,2021-03-12 10:12:00,Mysql01,high memory usage,True,1.0,cv4
+1,2021-03-23 02:36:00,Tomcat01,high memory usage,False,,cv4
+1,2021-03-23 23:04:00,MG02,network packet loss,False,,cv4
+1,2021-03-23 01:01:00,MG01,high disk I/O read usage,False,,cv4
+1,2021-03-23 01:47:00,MG01,high disk I/O read usage,False,,cv4
+1,2021-03-23 15:03:00,Tomcat02,high disk I/O read usage,False,,cv4
+1,2021-03-23 00:03:00,Tomcat03,high CPU usage,False,,cv4
+1,2021-03-23 18:43:00,Tomcat03,high CPU usage,False,,cv4
+1,2021-03-24 11:08:00,Tomcat03,network packet loss,False,,cv5
+1,2021-03-24 11:31:00,Tomcat01,network packet loss,False,,cv5
+1,2021-03-24 14:30:00,Tomcat02,network latency,False,,cv5
+1,2021-03-24 15:06:00,MG01,network latency,False,,cv5
+1,2021-03-24 19:24:00,MG01,network latency,False,,cv5
+1,2021-03-24 19:50:00,MG02,network latency,False,,cv5
+1,2021-03-24 20:34:00,Tomcat03,network packet loss,False,,cv5
+1,2021-03-25 00:07:00,MG02,network latency,False,,cv5
+1,2021-03-25 07:40:00,Tomcat03,network packet loss,False,,cv5
+1,2021-03-25 14:54:00,Tomcat03,network latency,False,,cv5
+1,2021-03-25 17:22:00,Tomcat01,network packet loss,False,,cv5
+1,2021-03-25 18:13:00,IG02,network latency,False,,cv5
+1,2021-03-25 19:15:00,Tomcat04,network packet loss,False,,cv5
+1,2021-03-25 20:25:00,MG01,network latency,False,,cv5
+1,2021-03-25 20:50:00,apache01,network packet loss,False,,cv5
+1,2021-03-25 22:01:00,MG02,network packet loss,False,,cv5
+1,2021-03-24 12:36:00,MG02,high disk I/O read usage,False,,cv5
+1,2021-03-24 14:05:00,apache01,high disk space usage,False,,cv5
+1,2021-03-25 00:19:00,apache01,high disk I/O read usage,False,,cv5
+1,2021-03-25 02:43:00,MG02,high disk I/O read usage,False,,cv5
+1,2021-03-25 09:04:00,Tomcat01,high disk I/O read usage,False,,cv5
+1,2021-03-24 16:47:00,Tomcat01,high CPU usage,False,,cv5
+1,2021-03-25 06:40:00,apache02,high CPU usage,False,,cv5
+1,2021-03-25 09:38:00,MG01,high CPU usage,False,,cv5
+1,2021-03-25 11:53:00,Mysql02,high CPU usage,True,1.0,cv5
+1,2021-03-25 15:42:00,Mysql02,high CPU usage,False,,cv5
+1,2021-03-25 19:00:00,IG02,high CPU usage,False,,cv5
+1,2021-03-25 19:40:00,Tomcat04,high CPU usage,False,,cv5
+1,2021-03-25 23:16:00,Redis02,high CPU usage,False,,cv5
+3,2021-03-04 14:57:00,Mysql02,high memory usage,False,,cv1
+3,2021-03-04 18:09:00,Redis02,high memory usage,False,,cv1
+3,2021-03-04 19:22:00,Tomcat02,network latency,False,,cv1
+3,2021-03-04 01:26:00,MG02,high JVM CPU load,False,,cv1
+3,2021-03-04 13:46:00,MG02,high JVM CPU load,False,,cv1
+3,2021-03-04 21:06:00,IG01,high JVM CPU load,False,,cv1
+3,2021-03-04 06:20:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+3,2021-03-04 19:36:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+3,2021-03-04 22:00:00,MG01,JVM Out of Memory (OOM) Heap,False,,cv1
+3,2021-03-04 22:25:00,IG01,JVM Out of Memory (OOM) Heap,False,,cv1
+3,2021-03-04 19:49:00,Tomcat03,high disk I/O read usage,False,,cv1
+3,2021-03-04 07:01:00,Redis02,high CPU usage,False,,cv1
+3,2021-03-04 20:14:00,Redis02,high CPU usage,False,,cv1
+3,2021-03-04 00:34:00,MG01,high memory usage,False,,cv1
+3,2021-03-04 02:45:00,Mysql02,high memory usage,False,,cv1
+3,2021-03-04 05:31:00,Redis02,high memory usage,False,,cv1
+3,2021-03-06 06:20:00,Tomcat01,high memory usage,False,,cv2
+3,2021-03-06 00:53:00,Tomcat04,network latency,False,,cv2
+3,2021-03-06 14:46:00,Tomcat03,network latency,False,,cv2
+3,2021-03-06 18:52:00,apache02,network packet loss,False,,cv2
+3,2021-03-06 23:18:00,Tomcat01,network latency,False,,cv2
+3,2021-03-06 23:36:00,MG01,network latency,False,,cv2
+3,2021-03-07 00:32:00,MG02,network packet loss,False,,cv2
+3,2021-03-07 07:32:00,Tomcat02,network latency,False,,cv2
+3,2021-03-07 16:08:00,MG01,network latency,False,,cv2
+3,2021-03-07 16:29:00,Tomcat04,network packet loss,False,,cv2
+3,2021-03-07 18:59:00,apache02,network latency,False,,cv2
+3,2021-03-07 21:36:00,Tomcat01,network packet loss,True,3.0,cv2
+3,2021-03-06 04:56:00,MG01,high disk I/O read usage,False,,cv2
+3,2021-03-06 15:19:00,IG02,high disk space usage,False,,cv2
+3,2021-03-07 03:21:00,Tomcat01,high disk I/O read usage,False,,cv2
+3,2021-03-07 15:41:00,Tomcat01,high disk I/O read usage,False,,cv2
+3,2021-03-06 02:00:00,Mysql01,high CPU usage,False,,cv2
+3,2021-03-06 03:36:00,IG01,high CPU usage,False,,cv2
+3,2021-03-06 20:44:00,Tomcat04,high CPU usage,False,,cv2
+3,2021-03-07 01:52:00,Redis02,high CPU usage,False,,cv2
+3,2021-03-07 06:35:00,IG02,high CPU usage,True,3.0,cv2
+3,2021-03-07 08:11:00,Tomcat03,high CPU usage,False,,cv2
+3,2021-03-07 11:09:00,IG02,high CPU usage,False,,cv2
+3,2021-03-07 13:24:00,IG01,high CPU usage,False,,cv2
+3,2021-03-07 17:52:00,Tomcat01,high CPU usage,False,,cv2
+3,2021-03-07 12:36:00,Tomcat04,high memory usage,False,,cv2
+3,2021-03-07 03:59:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv2
+3,2021-03-09 08:13:00,apache02,network packet loss,False,,cv3
+3,2021-03-09 09:18:00,IG02,network packet loss,False,,cv3
+3,2021-03-09 11:20:00,Tomcat01,network latency,False,,cv3
+3,2021-03-09 13:10:00,MG02,network packet loss,False,,cv3
+3,2021-03-09 14:14:00,MG02,network latency,False,,cv3
+3,2021-03-09 15:25:00,Tomcat01,network packet loss,False,,cv3
+3,2021-03-09 16:56:00,MG02,network latency,True,3.0,cv3
+3,2021-03-09 19:14:00,Tomcat02,network latency,False,,cv3
+3,2021-03-09 20:25:00,apache01,network packet loss,False,,cv3
+3,2021-03-09 21:07:00,apache01,network latency,False,,cv3
+3,2021-03-10 07:19:00,apache02,network latency,False,,cv3
+3,2021-03-10 10:43:00,Tomcat01,network packet loss,False,,cv3
+3,2021-03-10 15:02:00,apache02,network packet loss,False,,cv3
+3,2021-03-10 15:19:00,apache02,network latency,False,,cv3
+3,2021-03-10 16:42:00,Tomcat01,network latency,False,,cv3
+3,2021-03-10 18:57:00,Tomcat03,network packet loss,False,,cv3
+3,2021-03-09 01:20:00,apache01,high disk I/O read usage,False,,cv3
+3,2021-03-09 05:11:00,IG02,high disk space usage,False,,cv3
+3,2021-03-09 15:45:00,Tomcat01,high disk I/O read usage,False,,cv3
+3,2021-03-09 17:39:00,apache01,high disk space usage,False,,cv3
+3,2021-03-10 02:44:00,Tomcat01,high disk I/O read usage,False,,cv3
+3,2021-03-10 03:44:00,Tomcat04,high disk space usage,False,,cv3
+3,2021-03-10 14:21:00,Tomcat02,high disk I/O read usage,False,,cv3
+3,2021-03-10 15:43:00,apache02,high disk I/O read usage,False,,cv3
+3,2021-03-10 22:03:00,IG02,high disk I/O read usage,False,,cv3
+3,2021-03-10 22:19:00,MG02,high disk I/O read usage,False,,cv3
+3,2021-03-09 09:57:00,Tomcat04,high CPU usage,False,,cv3
+3,2021-03-09 14:42:00,Redis02,high CPU usage,False,,cv3
+3,2021-03-09 18:08:00,IG02,high CPU usage,False,,cv3
+3,2021-03-09 19:42:00,Tomcat03,high CPU usage,False,,cv3
+3,2021-03-09 22:32:00,IG02,high CPU usage,False,,cv3
+3,2021-03-10 00:19:00,IG01,high CPU usage,False,,cv3
+3,2021-03-10 04:38:00,Tomcat01,high CPU usage,False,,cv3
+3,2021-03-10 08:30:00,apache01,high CPU usage,False,,cv3
+3,2021-03-09 23:53:00,Tomcat04,high memory usage,False,,cv3
+3,2021-03-09 16:23:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+3,2021-03-10 17:51:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+3,2021-03-12 10:54:00,MG01,network packet loss,False,,cv4
+3,2021-03-12 12:13:00,Tomcat01,network packet loss,True,2.0,cv4
+3,2021-03-12 14:03:00,MG02,network packet loss,False,,cv4
+3,2021-03-12 15:38:00,MG01,network packet loss,True,3.0,cv4
+3,2021-03-12 16:26:00,apache02,network packet loss,True,1.0,cv4
+3,2021-03-12 22:35:00,Tomcat03,network packet loss,False,,cv4
+3,2021-03-12 23:33:00,apache02,network packet loss,False,,cv4
+3,2021-03-23 06:42:00,MG01,network packet loss,False,,cv4
+3,2021-03-23 14:24:00,Tomcat04,network packet loss,False,,cv4
+3,2021-03-23 14:50:00,MG01,network packet loss,False,,cv4
+3,2021-03-23 16:54:00,Tomcat04,network latency,False,,cv4
+3,2021-03-23 17:42:00,MG02,network latency,False,,cv4
+3,2021-03-23 18:03:00,MG01,network latency,False,,cv4
+3,2021-03-23 21:07:00,Tomcat04,network packet loss,False,,cv4
+3,2021-03-12 16:15:00,IG02,high disk I/O read usage,False,,cv4
+3,2021-03-12 10:24:00,IG02,high CPU usage,False,,cv4
+3,2021-03-12 15:10:00,MG01,high CPU usage,False,,cv4
+3,2021-03-12 17:14:00,Redis02,high CPU usage,False,,cv4
+3,2021-03-12 20:46:00,Redis01,high CPU usage,False,,cv4
+3,2021-03-12 10:12:00,Mysql01,high memory usage,False,,cv4
+3,2021-03-23 02:36:00,Tomcat01,high memory usage,False,,cv4
+3,2021-03-23 23:04:00,MG02,network packet loss,False,,cv4
+3,2021-03-23 01:01:00,MG01,high disk I/O read usage,False,,cv4
+3,2021-03-23 01:47:00,MG01,high disk I/O read usage,False,,cv4
+3,2021-03-23 15:03:00,Tomcat02,high disk I/O read usage,False,,cv4
+3,2021-03-23 00:03:00,Tomcat03,high CPU usage,False,,cv4
+3,2021-03-23 18:43:00,Tomcat03,high CPU usage,False,,cv4
+3,2021-03-24 11:08:00,Tomcat03,network packet loss,False,,cv5
+3,2021-03-24 11:31:00,Tomcat01,network packet loss,False,,cv5
+3,2021-03-24 14:30:00,Tomcat02,network latency,False,,cv5
+3,2021-03-24 15:06:00,MG01,network latency,False,,cv5
+3,2021-03-24 19:24:00,MG01,network latency,False,,cv5
+3,2021-03-24 19:50:00,MG02,network latency,False,,cv5
+3,2021-03-24 20:34:00,Tomcat03,network packet loss,False,,cv5
+3,2021-03-25 00:07:00,MG02,network latency,False,,cv5
+3,2021-03-25 07:40:00,Tomcat03,network packet loss,False,,cv5
+3,2021-03-25 14:54:00,Tomcat03,network latency,False,,cv5
+3,2021-03-25 17:22:00,Tomcat01,network packet loss,False,,cv5
+3,2021-03-25 18:13:00,IG02,network latency,False,,cv5
+3,2021-03-25 19:15:00,Tomcat04,network packet loss,False,,cv5
+3,2021-03-25 20:25:00,MG01,network latency,False,,cv5
+3,2021-03-25 20:50:00,apache01,network packet loss,False,,cv5
+3,2021-03-25 22:01:00,MG02,network packet loss,False,,cv5
+3,2021-03-24 12:36:00,MG02,high disk I/O read usage,False,,cv5
+3,2021-03-24 14:05:00,apache01,high disk space usage,False,,cv5
+3,2021-03-25 00:19:00,apache01,high disk I/O read usage,False,,cv5
+3,2021-03-25 02:43:00,MG02,high disk I/O read usage,False,,cv5
+3,2021-03-25 09:04:00,Tomcat01,high disk I/O read usage,False,,cv5
+3,2021-03-24 16:47:00,Tomcat01,high CPU usage,False,,cv5
+3,2021-03-25 06:40:00,apache02,high CPU usage,False,,cv5
+3,2021-03-25 09:38:00,MG01,high CPU usage,False,,cv5
+3,2021-03-25 11:53:00,Mysql02,high CPU usage,True,3.0,cv5
+3,2021-03-25 15:42:00,Mysql02,high CPU usage,False,,cv5
+3,2021-03-25 19:00:00,IG02,high CPU usage,False,,cv5
+3,2021-03-25 19:40:00,Tomcat04,high CPU usage,False,,cv5
+3,2021-03-25 23:16:00,Redis02,high CPU usage,False,,cv5
+5,2021-03-04 14:57:00,Mysql02,high memory usage,False,,cv1
+5,2021-03-04 18:09:00,Redis02,high memory usage,False,,cv1
+5,2021-03-04 19:22:00,Tomcat02,network latency,False,,cv1
+5,2021-03-04 01:26:00,MG02,high JVM CPU load,False,,cv1
+5,2021-03-04 13:46:00,MG02,high JVM CPU load,False,,cv1
+5,2021-03-04 21:06:00,IG01,high JVM CPU load,False,,cv1
+5,2021-03-04 06:20:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+5,2021-03-04 19:36:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+5,2021-03-04 22:00:00,MG01,JVM Out of Memory (OOM) Heap,False,,cv1
+5,2021-03-04 22:25:00,IG01,JVM Out of Memory (OOM) Heap,False,,cv1
+5,2021-03-04 19:49:00,Tomcat03,high disk I/O read usage,False,,cv1
+5,2021-03-04 07:01:00,Redis02,high CPU usage,False,,cv1
+5,2021-03-04 20:14:00,Redis02,high CPU usage,False,,cv1
+5,2021-03-04 00:34:00,MG01,high memory usage,False,,cv1
+5,2021-03-04 02:45:00,Mysql02,high memory usage,False,,cv1
+5,2021-03-04 05:31:00,Redis02,high memory usage,False,,cv1
+5,2021-03-06 06:20:00,Tomcat01,high memory usage,False,,cv2
+5,2021-03-06 00:53:00,Tomcat04,network latency,False,,cv2
+5,2021-03-06 14:46:00,Tomcat03,network latency,False,,cv2
+5,2021-03-06 18:52:00,apache02,network packet loss,False,,cv2
+5,2021-03-06 23:18:00,Tomcat01,network latency,False,,cv2
+5,2021-03-06 23:36:00,MG01,network latency,False,,cv2
+5,2021-03-07 00:32:00,MG02,network packet loss,False,,cv2
+5,2021-03-07 07:32:00,Tomcat02,network latency,False,,cv2
+5,2021-03-07 16:08:00,MG01,network latency,True,1.0,cv2
+5,2021-03-07 16:29:00,Tomcat04,network packet loss,False,,cv2
+5,2021-03-07 18:59:00,apache02,network latency,False,,cv2
+5,2021-03-07 21:36:00,Tomcat01,network packet loss,False,,cv2
+5,2021-03-06 04:56:00,MG01,high disk I/O read usage,False,,cv2
+5,2021-03-06 15:19:00,IG02,high disk space usage,False,,cv2
+5,2021-03-07 03:21:00,Tomcat01,high disk I/O read usage,False,,cv2
+5,2021-03-07 15:41:00,Tomcat01,high disk I/O read usage,False,,cv2
+5,2021-03-06 02:00:00,Mysql01,high CPU usage,False,,cv2
+5,2021-03-06 03:36:00,IG01,high CPU usage,False,,cv2
+5,2021-03-06 20:44:00,Tomcat04,high CPU usage,False,,cv2
+5,2021-03-07 01:52:00,Redis02,high CPU usage,False,,cv2
+5,2021-03-07 06:35:00,IG02,high CPU usage,True,5.0,cv2
+5,2021-03-07 08:11:00,Tomcat03,high CPU usage,False,,cv2
+5,2021-03-07 11:09:00,IG02,high CPU usage,False,,cv2
+5,2021-03-07 13:24:00,IG01,high CPU usage,False,,cv2
+5,2021-03-07 17:52:00,Tomcat01,high CPU usage,False,,cv2
+5,2021-03-07 12:36:00,Tomcat04,high memory usage,False,,cv2
+5,2021-03-07 03:59:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv2
+5,2021-03-09 08:13:00,apache02,network packet loss,False,,cv3
+5,2021-03-09 09:18:00,IG02,network packet loss,False,,cv3
+5,2021-03-09 11:20:00,Tomcat01,network latency,False,,cv3
+5,2021-03-09 13:10:00,MG02,network packet loss,False,,cv3
+5,2021-03-09 14:14:00,MG02,network latency,True,2.0,cv3
+5,2021-03-09 15:25:00,Tomcat01,network packet loss,False,,cv3
+5,2021-03-09 16:56:00,MG02,network latency,False,,cv3
+5,2021-03-09 19:14:00,Tomcat02,network latency,False,,cv3
+5,2021-03-09 20:25:00,apache01,network packet loss,False,,cv3
+5,2021-03-09 21:07:00,apache01,network latency,False,,cv3
+5,2021-03-10 07:19:00,apache02,network latency,False,,cv3
+5,2021-03-10 10:43:00,Tomcat01,network packet loss,False,,cv3
+5,2021-03-10 15:02:00,apache02,network packet loss,True,5.0,cv3
+5,2021-03-10 15:19:00,apache02,network latency,False,,cv3
+5,2021-03-10 16:42:00,Tomcat01,network latency,False,,cv3
+5,2021-03-10 18:57:00,Tomcat03,network packet loss,False,,cv3
+5,2021-03-09 01:20:00,apache01,high disk I/O read usage,False,,cv3
+5,2021-03-09 05:11:00,IG02,high disk space usage,False,,cv3
+5,2021-03-09 15:45:00,Tomcat01,high disk I/O read usage,False,,cv3
+5,2021-03-09 17:39:00,apache01,high disk space usage,False,,cv3
+5,2021-03-10 02:44:00,Tomcat01,high disk I/O read usage,False,,cv3
+5,2021-03-10 03:44:00,Tomcat04,high disk space usage,False,,cv3
+5,2021-03-10 14:21:00,Tomcat02,high disk I/O read usage,False,,cv3
+5,2021-03-10 15:43:00,apache02,high disk I/O read usage,False,,cv3
+5,2021-03-10 22:03:00,IG02,high disk I/O read usage,False,,cv3
+5,2021-03-10 22:19:00,MG02,high disk I/O read usage,False,,cv3
+5,2021-03-09 09:57:00,Tomcat04,high CPU usage,False,,cv3
+5,2021-03-09 14:42:00,Redis02,high CPU usage,True,5.0,cv3
+5,2021-03-09 18:08:00,IG02,high CPU usage,False,,cv3
+5,2021-03-09 19:42:00,Tomcat03,high CPU usage,False,,cv3
+5,2021-03-09 22:32:00,IG02,high CPU usage,False,,cv3
+5,2021-03-10 00:19:00,IG01,high CPU usage,False,,cv3
+5,2021-03-10 04:38:00,Tomcat01,high CPU usage,False,,cv3
+5,2021-03-10 08:30:00,apache01,high CPU usage,False,,cv3
+5,2021-03-09 23:53:00,Tomcat04,high memory usage,False,,cv3
+5,2021-03-09 16:23:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+5,2021-03-10 17:51:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+5,2021-03-12 10:54:00,MG01,network packet loss,False,,cv4
+5,2021-03-12 12:13:00,Tomcat01,network packet loss,False,,cv4
+5,2021-03-12 14:03:00,MG02,network packet loss,False,,cv4
+5,2021-03-12 15:38:00,MG01,network packet loss,False,,cv4
+5,2021-03-12 16:26:00,apache02,network packet loss,False,,cv4
+5,2021-03-12 22:35:00,Tomcat03,network packet loss,False,,cv4
+5,2021-03-12 23:33:00,apache02,network packet loss,False,,cv4
+5,2021-03-23 06:42:00,MG01,network packet loss,False,,cv4
+5,2021-03-23 14:24:00,Tomcat04,network packet loss,False,,cv4
+5,2021-03-23 14:50:00,MG01,network packet loss,False,,cv4
+5,2021-03-23 16:54:00,Tomcat04,network latency,False,,cv4
+5,2021-03-23 17:42:00,MG02,network latency,False,,cv4
+5,2021-03-23 18:03:00,MG01,network latency,False,,cv4
+5,2021-03-23 21:07:00,Tomcat04,network packet loss,False,,cv4
+5,2021-03-12 16:15:00,IG02,high disk I/O read usage,False,,cv4
+5,2021-03-12 10:24:00,IG02,high CPU usage,False,,cv4
+5,2021-03-12 15:10:00,MG01,high CPU usage,False,,cv4
+5,2021-03-12 17:14:00,Redis02,high CPU usage,False,,cv4
+5,2021-03-12 20:46:00,Redis01,high CPU usage,False,,cv4
+5,2021-03-12 10:12:00,Mysql01,high memory usage,False,,cv4
+5,2021-03-23 02:36:00,Tomcat01,high memory usage,False,,cv4
+5,2021-03-23 23:04:00,MG02,network packet loss,False,,cv4
+5,2021-03-23 01:01:00,MG01,high disk I/O read usage,False,,cv4
+5,2021-03-23 01:47:00,MG01,high disk I/O read usage,False,,cv4
+5,2021-03-23 15:03:00,Tomcat02,high disk I/O read usage,False,,cv4
+5,2021-03-23 00:03:00,Tomcat03,high CPU usage,False,,cv4
+5,2021-03-23 18:43:00,Tomcat03,high CPU usage,False,,cv4
+5,2021-03-24 11:08:00,Tomcat03,network packet loss,False,,cv5
+5,2021-03-24 11:31:00,Tomcat01,network packet loss,False,,cv5
+5,2021-03-24 14:30:00,Tomcat02,network latency,False,,cv5
+5,2021-03-24 15:06:00,MG01,network latency,False,,cv5
+5,2021-03-24 19:24:00,MG01,network latency,False,,cv5
+5,2021-03-24 19:50:00,MG02,network latency,False,,cv5
+5,2021-03-24 20:34:00,Tomcat03,network packet loss,False,,cv5
+5,2021-03-25 00:07:00,MG02,network latency,False,,cv5
+5,2021-03-25 07:40:00,Tomcat03,network packet loss,False,,cv5
+5,2021-03-25 14:54:00,Tomcat03,network latency,False,,cv5
+5,2021-03-25 17:22:00,Tomcat01,network packet loss,False,,cv5
+5,2021-03-25 18:13:00,IG02,network latency,False,,cv5
+5,2021-03-25 19:15:00,Tomcat04,network packet loss,False,,cv5
+5,2021-03-25 20:25:00,MG01,network latency,False,,cv5
+5,2021-03-25 20:50:00,apache01,network packet loss,False,,cv5
+5,2021-03-25 22:01:00,MG02,network packet loss,False,,cv5
+5,2021-03-24 12:36:00,MG02,high disk I/O read usage,False,,cv5
+5,2021-03-24 14:05:00,apache01,high disk space usage,False,,cv5
+5,2021-03-25 00:19:00,apache01,high disk I/O read usage,False,,cv5
+5,2021-03-25 02:43:00,MG02,high disk I/O read usage,False,,cv5
+5,2021-03-25 09:04:00,Tomcat01,high disk I/O read usage,False,,cv5
+5,2021-03-24 16:47:00,Tomcat01,high CPU usage,False,,cv5
+5,2021-03-25 06:40:00,apache02,high CPU usage,False,,cv5
+5,2021-03-25 09:38:00,MG01,high CPU usage,False,,cv5
+5,2021-03-25 11:53:00,Mysql02,high CPU usage,True,2.0,cv5
+5,2021-03-25 15:42:00,Mysql02,high CPU usage,False,,cv5
+5,2021-03-25 19:00:00,IG02,high CPU usage,False,,cv5
+5,2021-03-25 19:40:00,Tomcat04,high CPU usage,False,,cv5
+5,2021-03-25 23:16:00,Redis02,high CPU usage,False,,cv5
+10,2021-03-04 14:57:00,Mysql02,high memory usage,False,,cv1
+10,2021-03-04 18:09:00,Redis02,high memory usage,False,,cv1
+10,2021-03-04 19:22:00,Tomcat02,network latency,False,,cv1
+10,2021-03-04 01:26:00,MG02,high JVM CPU load,False,,cv1
+10,2021-03-04 13:46:00,MG02,high JVM CPU load,False,,cv1
+10,2021-03-04 21:06:00,IG01,high JVM CPU load,False,,cv1
+10,2021-03-04 06:20:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+10,2021-03-04 19:36:00,MG02,JVM Out of Memory (OOM) Heap,True,10.0,cv1
+10,2021-03-04 22:00:00,MG01,JVM Out of Memory (OOM) Heap,False,,cv1
+10,2021-03-04 22:25:00,IG01,JVM Out of Memory (OOM) Heap,False,,cv1
+10,2021-03-04 19:49:00,Tomcat03,high disk I/O read usage,False,,cv1
+10,2021-03-04 07:01:00,Redis02,high CPU usage,False,,cv1
+10,2021-03-04 20:14:00,Redis02,high CPU usage,False,,cv1
+10,2021-03-04 00:34:00,MG01,high memory usage,False,,cv1
+10,2021-03-04 02:45:00,Mysql02,high memory usage,False,,cv1
+10,2021-03-04 05:31:00,Redis02,high memory usage,False,,cv1
+10,2021-03-06 06:20:00,Tomcat01,high memory usage,False,,cv2
+10,2021-03-06 00:53:00,Tomcat04,network latency,False,,cv2
+10,2021-03-06 14:46:00,Tomcat03,network latency,True,10.0,cv2
+10,2021-03-06 18:52:00,apache02,network packet loss,False,,cv2
+10,2021-03-06 23:18:00,Tomcat01,network latency,False,,cv2
+10,2021-03-06 23:36:00,MG01,network latency,False,,cv2
+10,2021-03-07 00:32:00,MG02,network packet loss,False,,cv2
+10,2021-03-07 07:32:00,Tomcat02,network latency,False,,cv2
+10,2021-03-07 16:08:00,MG01,network latency,False,,cv2
+10,2021-03-07 16:29:00,Tomcat04,network packet loss,False,,cv2
+10,2021-03-07 18:59:00,apache02,network latency,False,,cv2
+10,2021-03-07 21:36:00,Tomcat01,network packet loss,False,,cv2
+10,2021-03-06 04:56:00,MG01,high disk I/O read usage,False,,cv2
+10,2021-03-06 15:19:00,IG02,high disk space usage,True,10.0,cv2
+10,2021-03-07 03:21:00,Tomcat01,high disk I/O read usage,False,,cv2
+10,2021-03-07 15:41:00,Tomcat01,high disk I/O read usage,False,,cv2
+10,2021-03-06 02:00:00,Mysql01,high CPU usage,False,,cv2
+10,2021-03-06 03:36:00,IG01,high CPU usage,False,,cv2
+10,2021-03-06 20:44:00,Tomcat04,high CPU usage,False,,cv2
+10,2021-03-07 01:52:00,Redis02,high CPU usage,False,,cv2
+10,2021-03-07 06:35:00,IG02,high CPU usage,False,,cv2
+10,2021-03-07 08:11:00,Tomcat03,high CPU usage,False,,cv2
+10,2021-03-07 11:09:00,IG02,high CPU usage,False,,cv2
+10,2021-03-07 13:24:00,IG01,high CPU usage,False,,cv2
+10,2021-03-07 17:52:00,Tomcat01,high CPU usage,False,,cv2
+10,2021-03-07 12:36:00,Tomcat04,high memory usage,True,10.0,cv2
+10,2021-03-07 03:59:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv2
+10,2021-03-09 08:13:00,apache02,network packet loss,False,,cv3
+10,2021-03-09 09:18:00,IG02,network packet loss,False,,cv3
+10,2021-03-09 11:20:00,Tomcat01,network latency,False,,cv3
+10,2021-03-09 13:10:00,MG02,network packet loss,False,,cv3
+10,2021-03-09 14:14:00,MG02,network latency,False,,cv3
+10,2021-03-09 15:25:00,Tomcat01,network packet loss,False,,cv3
+10,2021-03-09 16:56:00,MG02,network latency,False,,cv3
+10,2021-03-09 19:14:00,Tomcat02,network latency,False,,cv3
+10,2021-03-09 20:25:00,apache01,network packet loss,False,,cv3
+10,2021-03-09 21:07:00,apache01,network latency,False,,cv3
+10,2021-03-10 07:19:00,apache02,network latency,False,,cv3
+10,2021-03-10 10:43:00,Tomcat01,network packet loss,True,8.0,cv3
+10,2021-03-10 15:02:00,apache02,network packet loss,False,,cv3
+10,2021-03-10 15:19:00,apache02,network latency,False,,cv3
+10,2021-03-10 16:42:00,Tomcat01,network latency,False,,cv3
+10,2021-03-10 18:57:00,Tomcat03,network packet loss,False,,cv3
+10,2021-03-09 01:20:00,apache01,high disk I/O read usage,False,,cv3
+10,2021-03-09 05:11:00,IG02,high disk space usage,False,,cv3
+10,2021-03-09 15:45:00,Tomcat01,high disk I/O read usage,False,,cv3
+10,2021-03-09 17:39:00,apache01,high disk space usage,False,,cv3
+10,2021-03-10 02:44:00,Tomcat01,high disk I/O read usage,False,,cv3
+10,2021-03-10 03:44:00,Tomcat04,high disk space usage,False,,cv3
+10,2021-03-10 14:21:00,Tomcat02,high disk I/O read usage,False,,cv3
+10,2021-03-10 15:43:00,apache02,high disk I/O read usage,False,,cv3
+10,2021-03-10 22:03:00,IG02,high disk I/O read usage,False,,cv3
+10,2021-03-10 22:19:00,MG02,high disk I/O read usage,False,,cv3
+10,2021-03-09 09:57:00,Tomcat04,high CPU usage,False,,cv3
+10,2021-03-09 14:42:00,Redis02,high CPU usage,True,2.0,cv3
+10,2021-03-09 18:08:00,IG02,high CPU usage,False,,cv3
+10,2021-03-09 19:42:00,Tomcat03,high CPU usage,False,,cv3
+10,2021-03-09 22:32:00,IG02,high CPU usage,False,,cv3
+10,2021-03-10 00:19:00,IG01,high CPU usage,False,,cv3
+10,2021-03-10 04:38:00,Tomcat01,high CPU usage,False,,cv3
+10,2021-03-10 08:30:00,apache01,high CPU usage,False,,cv3
+10,2021-03-09 23:53:00,Tomcat04,high memory usage,False,,cv3
+10,2021-03-09 16:23:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+10,2021-03-10 17:51:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+10,2021-03-12 10:54:00,MG01,network packet loss,False,,cv4
+10,2021-03-12 12:13:00,Tomcat01,network packet loss,False,,cv4
+10,2021-03-12 14:03:00,MG02,network packet loss,False,,cv4
+10,2021-03-12 15:38:00,MG01,network packet loss,False,,cv4
+10,2021-03-12 16:26:00,apache02,network packet loss,False,,cv4
+10,2021-03-12 22:35:00,Tomcat03,network packet loss,False,,cv4
+10,2021-03-12 23:33:00,apache02,network packet loss,False,,cv4
+10,2021-03-23 06:42:00,MG01,network packet loss,False,,cv4
+10,2021-03-23 14:24:00,Tomcat04,network packet loss,False,,cv4
+10,2021-03-23 14:50:00,MG01,network packet loss,False,,cv4
+10,2021-03-23 16:54:00,Tomcat04,network latency,False,,cv4
+10,2021-03-23 17:42:00,MG02,network latency,False,,cv4
+10,2021-03-23 18:03:00,MG01,network latency,False,,cv4
+10,2021-03-23 21:07:00,Tomcat04,network packet loss,False,,cv4
+10,2021-03-12 16:15:00,IG02,high disk I/O read usage,False,,cv4
+10,2021-03-12 10:24:00,IG02,high CPU usage,False,,cv4
+10,2021-03-12 15:10:00,MG01,high CPU usage,False,,cv4
+10,2021-03-12 17:14:00,Redis02,high CPU usage,False,,cv4
+10,2021-03-12 20:46:00,Redis01,high CPU usage,False,,cv4
+10,2021-03-12 10:12:00,Mysql01,high memory usage,False,,cv4
+10,2021-03-23 02:36:00,Tomcat01,high memory usage,False,,cv4
+10,2021-03-23 23:04:00,MG02,network packet loss,False,,cv4
+10,2021-03-23 01:01:00,MG01,high disk I/O read usage,False,,cv4
+10,2021-03-23 01:47:00,MG01,high disk I/O read usage,False,,cv4
+10,2021-03-23 15:03:00,Tomcat02,high disk I/O read usage,False,,cv4
+10,2021-03-23 00:03:00,Tomcat03,high CPU usage,False,,cv4
+10,2021-03-23 18:43:00,Tomcat03,high CPU usage,False,,cv4
+10,2021-03-24 11:08:00,Tomcat03,network packet loss,True,10.0,cv5
+10,2021-03-24 11:31:00,Tomcat01,network packet loss,False,,cv5
+10,2021-03-24 14:30:00,Tomcat02,network latency,False,,cv5
+10,2021-03-24 15:06:00,MG01,network latency,False,,cv5
+10,2021-03-24 19:24:00,MG01,network latency,False,,cv5
+10,2021-03-24 19:50:00,MG02,network latency,False,,cv5
+10,2021-03-24 20:34:00,Tomcat03,network packet loss,False,,cv5
+10,2021-03-25 00:07:00,MG02,network latency,False,,cv5
+10,2021-03-25 07:40:00,Tomcat03,network packet loss,False,,cv5
+10,2021-03-25 14:54:00,Tomcat03,network latency,False,,cv5
+10,2021-03-25 17:22:00,Tomcat01,network packet loss,False,,cv5
+10,2021-03-25 18:13:00,IG02,network latency,False,,cv5
+10,2021-03-25 19:15:00,Tomcat04,network packet loss,False,,cv5
+10,2021-03-25 20:25:00,MG01,network latency,False,,cv5
+10,2021-03-25 20:50:00,apache01,network packet loss,False,,cv5
+10,2021-03-25 22:01:00,MG02,network packet loss,False,,cv5
+10,2021-03-24 12:36:00,MG02,high disk I/O read usage,False,,cv5
+10,2021-03-24 14:05:00,apache01,high disk space usage,True,10.0,cv5
+10,2021-03-25 00:19:00,apache01,high disk I/O read usage,False,,cv5
+10,2021-03-25 02:43:00,MG02,high disk I/O read usage,False,,cv5
+10,2021-03-25 09:04:00,Tomcat01,high disk I/O read usage,False,,cv5
+10,2021-03-24 16:47:00,Tomcat01,high CPU usage,False,,cv5
+10,2021-03-25 06:40:00,apache02,high CPU usage,False,,cv5
+10,2021-03-25 09:38:00,MG01,high CPU usage,False,,cv5
+10,2021-03-25 11:53:00,Mysql02,high CPU usage,False,,cv5
+10,2021-03-25 15:42:00,Mysql02,high CPU usage,False,,cv5
+10,2021-03-25 19:00:00,IG02,high CPU usage,False,,cv5
+10,2021-03-25 19:40:00,Tomcat04,high CPU usage,False,,cv5
+10,2021-03-25 23:16:00,Redis02,high CPU usage,False,,cv5
+15,2021-03-04 14:57:00,Mysql02,high memory usage,False,,cv1
+15,2021-03-04 18:09:00,Redis02,high memory usage,False,,cv1
+15,2021-03-04 19:22:00,Tomcat02,network latency,False,,cv1
+15,2021-03-04 01:26:00,MG02,high JVM CPU load,False,,cv1
+15,2021-03-04 13:46:00,MG02,high JVM CPU load,False,,cv1
+15,2021-03-04 21:06:00,IG01,high JVM CPU load,False,,cv1
+15,2021-03-04 06:20:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+15,2021-03-04 19:36:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+15,2021-03-04 22:00:00,MG01,JVM Out of Memory (OOM) Heap,False,,cv1
+15,2021-03-04 22:25:00,IG01,JVM Out of Memory (OOM) Heap,False,,cv1
+15,2021-03-04 19:49:00,Tomcat03,high disk I/O read usage,False,,cv1
+15,2021-03-04 07:01:00,Redis02,high CPU usage,False,,cv1
+15,2021-03-04 20:14:00,Redis02,high CPU usage,False,,cv1
+15,2021-03-04 00:34:00,MG01,high memory usage,False,,cv1
+15,2021-03-04 02:45:00,Mysql02,high memory usage,False,,cv1
+15,2021-03-04 05:31:00,Redis02,high memory usage,False,,cv1
+15,2021-03-06 06:20:00,Tomcat01,high memory usage,True,15.0,cv2
+15,2021-03-06 00:53:00,Tomcat04,network latency,False,,cv2
+15,2021-03-06 14:46:00,Tomcat03,network latency,False,,cv2
+15,2021-03-06 18:52:00,apache02,network packet loss,False,,cv2
+15,2021-03-06 23:18:00,Tomcat01,network latency,False,,cv2
+15,2021-03-06 23:36:00,MG01,network latency,False,,cv2
+15,2021-03-07 00:32:00,MG02,network packet loss,False,,cv2
+15,2021-03-07 07:32:00,Tomcat02,network latency,False,,cv2
+15,2021-03-07 16:08:00,MG01,network latency,False,,cv2
+15,2021-03-07 16:29:00,Tomcat04,network packet loss,False,,cv2
+15,2021-03-07 18:59:00,apache02,network latency,False,,cv2
+15,2021-03-07 21:36:00,Tomcat01,network packet loss,False,,cv2
+15,2021-03-06 04:56:00,MG01,high disk I/O read usage,False,,cv2
+15,2021-03-06 15:19:00,IG02,high disk space usage,False,,cv2
+15,2021-03-07 03:21:00,Tomcat01,high disk I/O read usage,False,,cv2
+15,2021-03-07 15:41:00,Tomcat01,high disk I/O read usage,False,,cv2
+15,2021-03-06 02:00:00,Mysql01,high CPU usage,False,,cv2
+15,2021-03-06 03:36:00,IG01,high CPU usage,False,,cv2
+15,2021-03-06 20:44:00,Tomcat04,high CPU usage,False,,cv2
+15,2021-03-07 01:52:00,Redis02,high CPU usage,False,,cv2
+15,2021-03-07 06:35:00,IG02,high CPU usage,False,,cv2
+15,2021-03-07 08:11:00,Tomcat03,high CPU usage,False,,cv2
+15,2021-03-07 11:09:00,IG02,high CPU usage,True,15.0,cv2
+15,2021-03-07 13:24:00,IG01,high CPU usage,True,15.0,cv2
+15,2021-03-07 17:52:00,Tomcat01,high CPU usage,False,,cv2
+15,2021-03-07 12:36:00,Tomcat04,high memory usage,False,,cv2
+15,2021-03-07 03:59:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv2
+15,2021-03-09 08:13:00,apache02,network packet loss,False,,cv3
+15,2021-03-09 09:18:00,IG02,network packet loss,False,,cv3
+15,2021-03-09 11:20:00,Tomcat01,network latency,True,14.0,cv3
+15,2021-03-09 13:10:00,MG02,network packet loss,False,,cv3
+15,2021-03-09 14:14:00,MG02,network latency,False,,cv3
+15,2021-03-09 15:25:00,Tomcat01,network packet loss,False,,cv3
+15,2021-03-09 16:56:00,MG02,network latency,False,,cv3
+15,2021-03-09 19:14:00,Tomcat02,network latency,False,,cv3
+15,2021-03-09 20:25:00,apache01,network packet loss,False,,cv3
+15,2021-03-09 21:07:00,apache01,network latency,False,,cv3
+15,2021-03-10 07:19:00,apache02,network latency,False,,cv3
+15,2021-03-10 10:43:00,Tomcat01,network packet loss,False,,cv3
+15,2021-03-10 15:02:00,apache02,network packet loss,False,,cv3
+15,2021-03-10 15:19:00,apache02,network latency,False,,cv3
+15,2021-03-10 16:42:00,Tomcat01,network latency,True,15.0,cv3
+15,2021-03-10 18:57:00,Tomcat03,network packet loss,False,,cv3
+15,2021-03-09 01:20:00,apache01,high disk I/O read usage,False,,cv3
+15,2021-03-09 05:11:00,IG02,high disk space usage,False,,cv3
+15,2021-03-09 15:45:00,Tomcat01,high disk I/O read usage,False,,cv3
+15,2021-03-09 17:39:00,apache01,high disk space usage,False,,cv3
+15,2021-03-10 02:44:00,Tomcat01,high disk I/O read usage,False,,cv3
+15,2021-03-10 03:44:00,Tomcat04,high disk space usage,False,,cv3
+15,2021-03-10 14:21:00,Tomcat02,high disk I/O read usage,False,,cv3
+15,2021-03-10 15:43:00,apache02,high disk I/O read usage,False,,cv3
+15,2021-03-10 22:03:00,IG02,high disk I/O read usage,False,,cv3
+15,2021-03-10 22:19:00,MG02,high disk I/O read usage,False,,cv3
+15,2021-03-09 09:57:00,Tomcat04,high CPU usage,False,,cv3
+15,2021-03-09 14:42:00,Redis02,high CPU usage,False,,cv3
+15,2021-03-09 18:08:00,IG02,high CPU usage,False,,cv3
+15,2021-03-09 19:42:00,Tomcat03,high CPU usage,False,,cv3
+15,2021-03-09 22:32:00,IG02,high CPU usage,False,,cv3
+15,2021-03-10 00:19:00,IG01,high CPU usage,False,,cv3
+15,2021-03-10 04:38:00,Tomcat01,high CPU usage,False,,cv3
+15,2021-03-10 08:30:00,apache01,high CPU usage,False,,cv3
+15,2021-03-09 23:53:00,Tomcat04,high memory usage,False,,cv3
+15,2021-03-09 16:23:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+15,2021-03-10 17:51:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+15,2021-03-12 10:54:00,MG01,network packet loss,False,,cv4
+15,2021-03-12 12:13:00,Tomcat01,network packet loss,False,,cv4
+15,2021-03-12 14:03:00,MG02,network packet loss,False,,cv4
+15,2021-03-12 15:38:00,MG01,network packet loss,False,,cv4
+15,2021-03-12 16:26:00,apache02,network packet loss,False,,cv4
+15,2021-03-12 22:35:00,Tomcat03,network packet loss,False,,cv4
+15,2021-03-12 23:33:00,apache02,network packet loss,False,,cv4
+15,2021-03-23 06:42:00,MG01,network packet loss,False,,cv4
+15,2021-03-23 14:24:00,Tomcat04,network packet loss,True,15.0,cv4
+15,2021-03-23 14:50:00,MG01,network packet loss,False,,cv4
+15,2021-03-23 16:54:00,Tomcat04,network latency,False,,cv4
+15,2021-03-23 17:42:00,MG02,network latency,False,,cv4
+15,2021-03-23 18:03:00,MG01,network latency,False,,cv4
+15,2021-03-23 21:07:00,Tomcat04,network packet loss,False,,cv4
+15,2021-03-12 16:15:00,IG02,high disk I/O read usage,False,,cv4
+15,2021-03-12 10:24:00,IG02,high CPU usage,False,,cv4
+15,2021-03-12 15:10:00,MG01,high CPU usage,False,,cv4
+15,2021-03-12 17:14:00,Redis02,high CPU usage,False,,cv4
+15,2021-03-12 20:46:00,Redis01,high CPU usage,False,,cv4
+15,2021-03-12 10:12:00,Mysql01,high memory usage,False,,cv4
+15,2021-03-23 02:36:00,Tomcat01,high memory usage,False,,cv4
+15,2021-03-23 23:04:00,MG02,network packet loss,False,,cv4
+15,2021-03-23 01:01:00,MG01,high disk I/O read usage,False,,cv4
+15,2021-03-23 01:47:00,MG01,high disk I/O read usage,False,,cv4
+15,2021-03-23 15:03:00,Tomcat02,high disk I/O read usage,False,,cv4
+15,2021-03-23 00:03:00,Tomcat03,high CPU usage,False,,cv4
+15,2021-03-23 18:43:00,Tomcat03,high CPU usage,False,,cv4
+15,2021-03-24 11:08:00,Tomcat03,network packet loss,True,15.0,cv5
+15,2021-03-24 11:31:00,Tomcat01,network packet loss,False,,cv5
+15,2021-03-24 14:30:00,Tomcat02,network latency,False,,cv5
+15,2021-03-24 15:06:00,MG01,network latency,False,,cv5
+15,2021-03-24 19:24:00,MG01,network latency,False,,cv5
+15,2021-03-24 19:50:00,MG02,network latency,False,,cv5
+15,2021-03-24 20:34:00,Tomcat03,network packet loss,False,,cv5
+15,2021-03-25 00:07:00,MG02,network latency,False,,cv5
+15,2021-03-25 07:40:00,Tomcat03,network packet loss,False,,cv5
+15,2021-03-25 14:54:00,Tomcat03,network latency,False,,cv5
+15,2021-03-25 17:22:00,Tomcat01,network packet loss,False,,cv5
+15,2021-03-25 18:13:00,IG02,network latency,False,,cv5
+15,2021-03-25 19:15:00,Tomcat04,network packet loss,False,,cv5
+15,2021-03-25 20:25:00,MG01,network latency,False,,cv5
+15,2021-03-25 20:50:00,apache01,network packet loss,False,,cv5
+15,2021-03-25 22:01:00,MG02,network packet loss,False,,cv5
+15,2021-03-24 12:36:00,MG02,high disk I/O read usage,False,,cv5
+15,2021-03-24 14:05:00,apache01,high disk space usage,False,,cv5
+15,2021-03-25 00:19:00,apache01,high disk I/O read usage,False,,cv5
+15,2021-03-25 02:43:00,MG02,high disk I/O read usage,False,,cv5
+15,2021-03-25 09:04:00,Tomcat01,high disk I/O read usage,False,,cv5
+15,2021-03-24 16:47:00,Tomcat01,high CPU usage,False,,cv5
+15,2021-03-25 06:40:00,apache02,high CPU usage,False,,cv5
+15,2021-03-25 09:38:00,MG01,high CPU usage,False,,cv5
+15,2021-03-25 11:53:00,Mysql02,high CPU usage,False,,cv5
+15,2021-03-25 15:42:00,Mysql02,high CPU usage,False,,cv5
+15,2021-03-25 19:00:00,IG02,high CPU usage,False,,cv5
+15,2021-03-25 19:40:00,Tomcat04,high CPU usage,False,,cv5
+15,2021-03-25 23:16:00,Redis02,high CPU usage,False,,cv5
+30,2021-03-04 14:57:00,Mysql02,high memory usage,False,,cv1
+30,2021-03-04 18:09:00,Redis02,high memory usage,False,,cv1
+30,2021-03-04 19:22:00,Tomcat02,network latency,False,,cv1
+30,2021-03-04 01:26:00,MG02,high JVM CPU load,False,,cv1
+30,2021-03-04 13:46:00,MG02,high JVM CPU load,False,,cv1
+30,2021-03-04 21:06:00,IG01,high JVM CPU load,False,,cv1
+30,2021-03-04 06:20:00,MG02,JVM Out of Memory (OOM) Heap,False,,cv1
+30,2021-03-04 19:36:00,MG02,JVM Out of Memory (OOM) Heap,True,1.0,cv1
+30,2021-03-04 22:00:00,MG01,JVM Out of Memory (OOM) Heap,False,,cv1
+30,2021-03-04 22:25:00,IG01,JVM Out of Memory (OOM) Heap,False,,cv1
+30,2021-03-04 19:49:00,Tomcat03,high disk I/O read usage,True,14.0,cv1
+30,2021-03-04 07:01:00,Redis02,high CPU usage,False,,cv1
+30,2021-03-04 20:14:00,Redis02,high CPU usage,False,,cv1
+30,2021-03-04 00:34:00,MG01,high memory usage,False,,cv1
+30,2021-03-04 02:45:00,Mysql02,high memory usage,False,,cv1
+30,2021-03-04 05:31:00,Redis02,high memory usage,False,,cv1
+30,2021-03-06 06:20:00,Tomcat01,high memory usage,False,,cv2
+30,2021-03-06 00:53:00,Tomcat04,network latency,False,,cv2
+30,2021-03-06 14:46:00,Tomcat03,network latency,True,1.0,cv2
+30,2021-03-06 18:52:00,apache02,network packet loss,False,,cv2
+30,2021-03-06 23:18:00,Tomcat01,network latency,False,,cv2
+30,2021-03-06 23:36:00,MG01,network latency,False,,cv2
+30,2021-03-07 00:32:00,MG02,network packet loss,False,,cv2
+30,2021-03-07 07:32:00,Tomcat02,network latency,False,,cv2
+30,2021-03-07 16:08:00,MG01,network latency,True,29.0,cv2
+30,2021-03-07 16:29:00,Tomcat04,network packet loss,True,30.0,cv2
+30,2021-03-07 18:59:00,apache02,network latency,False,,cv2
+30,2021-03-07 21:36:00,Tomcat01,network packet loss,False,,cv2
+30,2021-03-06 04:56:00,MG01,high disk I/O read usage,False,,cv2
+30,2021-03-06 15:19:00,IG02,high disk space usage,False,,cv2
+30,2021-03-07 03:21:00,Tomcat01,high disk I/O read usage,False,,cv2
+30,2021-03-07 15:41:00,Tomcat01,high disk I/O read usage,True,2.0,cv2
+30,2021-03-06 02:00:00,Mysql01,high CPU usage,False,,cv2
+30,2021-03-06 03:36:00,IG01,high CPU usage,False,,cv2
+30,2021-03-06 20:44:00,Tomcat04,high CPU usage,False,,cv2
+30,2021-03-07 01:52:00,Redis02,high CPU usage,False,,cv2
+30,2021-03-07 06:35:00,IG02,high CPU usage,True,23.0,cv2
+30,2021-03-07 08:11:00,Tomcat03,high CPU usage,False,,cv2
+30,2021-03-07 11:09:00,IG02,high CPU usage,True,30.0,cv2
+30,2021-03-07 13:24:00,IG01,high CPU usage,False,,cv2
+30,2021-03-07 17:52:00,Tomcat01,high CPU usage,True,27.0,cv2
+30,2021-03-07 12:36:00,Tomcat04,high memory usage,True,21.0,cv2
+30,2021-03-07 03:59:00,Tomcat02,JVM Out of Memory (OOM) Heap,True,25.0,cv2
+30,2021-03-09 08:13:00,apache02,network packet loss,False,,cv3
+30,2021-03-09 09:18:00,IG02,network packet loss,False,,cv3
+30,2021-03-09 11:20:00,Tomcat01,network latency,True,25.0,cv3
+30,2021-03-09 13:10:00,MG02,network packet loss,False,,cv3
+30,2021-03-09 14:14:00,MG02,network latency,False,,cv3
+30,2021-03-09 15:25:00,Tomcat01,network packet loss,False,,cv3
+30,2021-03-09 16:56:00,MG02,network latency,True,18.0,cv3
+30,2021-03-09 19:14:00,Tomcat02,network latency,False,,cv3
+30,2021-03-09 20:25:00,apache01,network packet loss,False,,cv3
+30,2021-03-09 21:07:00,apache01,network latency,False,,cv3
+30,2021-03-10 07:19:00,apache02,network latency,False,,cv3
+30,2021-03-10 10:43:00,Tomcat01,network packet loss,False,,cv3
+30,2021-03-10 15:02:00,apache02,network packet loss,False,,cv3
+30,2021-03-10 15:19:00,apache02,network latency,False,,cv3
+30,2021-03-10 16:42:00,Tomcat01,network latency,False,,cv3
+30,2021-03-10 18:57:00,Tomcat03,network packet loss,False,,cv3
+30,2021-03-09 01:20:00,apache01,high disk I/O read usage,False,,cv3
+30,2021-03-09 05:11:00,IG02,high disk space usage,False,,cv3
+30,2021-03-09 15:45:00,Tomcat01,high disk I/O read usage,False,,cv3
+30,2021-03-09 17:39:00,apache01,high disk space usage,False,,cv3
+30,2021-03-10 02:44:00,Tomcat01,high disk I/O read usage,False,,cv3
+30,2021-03-10 03:44:00,Tomcat04,high disk space usage,False,,cv3
+30,2021-03-10 14:21:00,Tomcat02,high disk I/O read usage,False,,cv3
+30,2021-03-10 15:43:00,apache02,high disk I/O read usage,False,,cv3
+30,2021-03-10 22:03:00,IG02,high disk I/O read usage,False,,cv3
+30,2021-03-10 22:19:00,MG02,high disk I/O read usage,False,,cv3
+30,2021-03-09 09:57:00,Tomcat04,high CPU usage,False,,cv3
+30,2021-03-09 14:42:00,Redis02,high CPU usage,True,16.0,cv3
+30,2021-03-09 18:08:00,IG02,high CPU usage,False,,cv3
+30,2021-03-09 19:42:00,Tomcat03,high CPU usage,False,,cv3
+30,2021-03-09 22:32:00,IG02,high CPU usage,False,,cv3
+30,2021-03-10 00:19:00,IG01,high CPU usage,False,,cv3
+30,2021-03-10 04:38:00,Tomcat01,high CPU usage,False,,cv3
+30,2021-03-10 08:30:00,apache01,high CPU usage,False,,cv3
+30,2021-03-09 23:53:00,Tomcat04,high memory usage,False,,cv3
+30,2021-03-09 16:23:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+30,2021-03-10 17:51:00,Tomcat02,JVM Out of Memory (OOM) Heap,False,,cv3
+30,2021-03-12 10:54:00,MG01,network packet loss,False,,cv4
+30,2021-03-12 12:13:00,Tomcat01,network packet loss,False,,cv4
+30,2021-03-12 14:03:00,MG02,network packet loss,False,,cv4
+30,2021-03-12 15:38:00,MG01,network packet loss,False,,cv4
+30,2021-03-12 16:26:00,apache02,network packet loss,False,,cv4
+30,2021-03-12 22:35:00,Tomcat03,network packet loss,False,,cv4
+30,2021-03-12 23:33:00,apache02,network packet loss,False,,cv4
+30,2021-03-23 06:42:00,MG01,network packet loss,False,,cv4
+30,2021-03-23 14:24:00,Tomcat04,network packet loss,False,,cv4
+30,2021-03-23 14:50:00,MG01,network packet loss,False,,cv4
+30,2021-03-23 16:54:00,Tomcat04,network latency,False,,cv4
+30,2021-03-23 17:42:00,MG02,network latency,False,,cv4
+30,2021-03-23 18:03:00,MG01,network latency,False,,cv4
+30,2021-03-23 21:07:00,Tomcat04,network packet loss,False,,cv4
+30,2021-03-12 16:15:00,IG02,high disk I/O read usage,False,,cv4
+30,2021-03-12 10:24:00,IG02,high CPU usage,True,24.0,cv4
+30,2021-03-12 15:10:00,MG01,high CPU usage,False,,cv4
+30,2021-03-12 17:14:00,Redis02,high CPU usage,False,,cv4
+30,2021-03-12 20:46:00,Redis01,high CPU usage,False,,cv4
+30,2021-03-12 10:12:00,Mysql01,high memory usage,True,24.0,cv4
+30,2021-03-23 02:36:00,Tomcat01,high memory usage,False,,cv4
+30,2021-03-23 23:04:00,MG02,network packet loss,False,,cv4
+30,2021-03-23 01:01:00,MG01,high disk I/O read usage,False,,cv4
+30,2021-03-23 01:47:00,MG01,high disk I/O read usage,False,,cv4
+30,2021-03-23 15:03:00,Tomcat02,high disk I/O read usage,False,,cv4
+30,2021-03-23 00:03:00,Tomcat03,high CPU usage,False,,cv4
+30,2021-03-23 18:43:00,Tomcat03,high CPU usage,False,,cv4
+30,2021-03-24 11:08:00,Tomcat03,network packet loss,True,30.0,cv5
+30,2021-03-24 11:31:00,Tomcat01,network packet loss,True,30.0,cv5
+30,2021-03-24 14:30:00,Tomcat02,network latency,False,,cv5
+30,2021-03-24 15:06:00,MG01,network latency,False,,cv5
+30,2021-03-24 19:24:00,MG01,network latency,False,,cv5
+30,2021-03-24 19:50:00,MG02,network latency,False,,cv5
+30,2021-03-24 20:34:00,Tomcat03,network packet loss,False,,cv5
+30,2021-03-25 00:07:00,MG02,network latency,False,,cv5
+30,2021-03-25 07:40:00,Tomcat03,network packet loss,False,,cv5
+30,2021-03-25 14:54:00,Tomcat03,network latency,False,,cv5
+30,2021-03-25 17:22:00,Tomcat01,network packet loss,False,,cv5
+30,2021-03-25 18:13:00,IG02,network latency,False,,cv5
+30,2021-03-25 19:15:00,Tomcat04,network packet loss,False,,cv5
+30,2021-03-25 20:25:00,MG01,network latency,False,,cv5
+30,2021-03-25 20:50:00,apache01,network packet loss,False,,cv5
+30,2021-03-25 22:01:00,MG02,network packet loss,False,,cv5
+30,2021-03-24 12:36:00,MG02,high disk I/O read usage,False,,cv5
+30,2021-03-24 14:05:00,apache01,high disk space usage,False,,cv5
+30,2021-03-25 00:19:00,apache01,high disk I/O read usage,False,,cv5
+30,2021-03-25 02:43:00,MG02,high disk I/O read usage,False,,cv5
+30,2021-03-25 09:04:00,Tomcat01,high disk I/O read usage,True,16.0,cv5
+30,2021-03-24 16:47:00,Tomcat01,high CPU usage,False,,cv5
+30,2021-03-25 06:40:00,apache02,high CPU usage,False,,cv5
+30,2021-03-25 09:38:00,MG01,high CPU usage,False,,cv5
+30,2021-03-25 11:53:00,Mysql02,high CPU usage,False,,cv5
+30,2021-03-25 15:42:00,Mysql02,high CPU usage,False,,cv5
+30,2021-03-25 19:00:00,IG02,high CPU usage,False,,cv5
+30,2021-03-25 19:40:00,Tomcat04,high CPU usage,False,,cv5
+30,2021-03-25 23:16:00,Redis02,high CPU usage,False,,cv5

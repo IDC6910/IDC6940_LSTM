@@ -1,0 +1,85 @@
+horizon,onset,component,reason,detected,lead_min,fold
+1,2020-05-28 00:47:00,docker_001,CPU fault,False,,chrono
+1,2020-05-28 03:47:00,os_018,network loss,True,1.0,chrono
+1,2020-05-29 02:11:00,db_003,db connection limit,False,,chrono
+1,2020-05-29 02:41:00,docker_008,CPU fault,False,,chrono
+1,2020-05-29 03:41:00,docker_001,CPU fault,False,,chrono
+1,2020-05-30 00:13:00,os_021,network loss,False,,chrono
+1,2020-05-30 02:43:00,os_009,network delay,True,1.0,chrono
+1,2020-05-30 03:43:00,os_020,network delay,True,1.0,chrono
+1,2020-05-30 04:13:00,docker_002,CPU fault,False,,chrono
+1,2020-05-30 05:13:00,os_018,network loss,False,,chrono
+1,2020-05-31 02:47:00,os_021,network delay,False,,chrono
+1,2020-05-31 03:17:00,os_017,network delay,False,,chrono
+1,2020-05-31 03:47:00,db_003,db connection limit,False,,chrono
+1,2020-05-31 04:17:00,docker_004,CPU fault,False,,chrono
+3,2020-05-28 00:47:00,docker_001,CPU fault,False,,chrono
+3,2020-05-28 03:47:00,os_018,network loss,False,,chrono
+3,2020-05-29 02:11:00,db_003,db connection limit,False,,chrono
+3,2020-05-29 02:41:00,docker_008,CPU fault,False,,chrono
+3,2020-05-29 03:41:00,docker_001,CPU fault,False,,chrono
+3,2020-05-30 00:13:00,os_021,network loss,False,,chrono
+3,2020-05-30 02:43:00,os_009,network delay,False,,chrono
+3,2020-05-30 03:43:00,os_020,network delay,False,,chrono
+3,2020-05-30 04:13:00,docker_002,CPU fault,False,,chrono
+3,2020-05-30 05:13:00,os_018,network loss,False,,chrono
+3,2020-05-31 02:47:00,os_021,network delay,False,,chrono
+3,2020-05-31 03:17:00,os_017,network delay,False,,chrono
+3,2020-05-31 03:47:00,db_003,db connection limit,False,,chrono
+3,2020-05-31 04:17:00,docker_004,CPU fault,False,,chrono
+5,2020-05-28 00:47:00,docker_001,CPU fault,False,,chrono
+5,2020-05-28 03:47:00,os_018,network loss,False,,chrono
+5,2020-05-29 02:11:00,db_003,db connection limit,False,,chrono
+5,2020-05-29 02:41:00,docker_008,CPU fault,False,,chrono
+5,2020-05-29 03:41:00,docker_001,CPU fault,False,,chrono
+5,2020-05-30 00:13:00,os_021,network loss,False,,chrono
+5,2020-05-30 02:43:00,os_009,network delay,False,,chrono
+5,2020-05-30 03:43:00,os_020,network delay,False,,chrono
+5,2020-05-30 04:13:00,docker_002,CPU fault,False,,chrono
+5,2020-05-30 05:13:00,os_018,network loss,False,,chrono
+5,2020-05-31 02:47:00,os_021,network delay,False,,chrono
+5,2020-05-31 03:17:00,os_017,network delay,False,,chrono
+5,2020-05-31 03:47:00,db_003,db connection limit,False,,chrono
+5,2020-05-31 04:17:00,docker_004,CPU fault,False,,chrono
+10,2020-05-28 00:47:00,docker_001,CPU fault,False,,chrono
+10,2020-05-28 03:47:00,os_018,network loss,True,10.0,chrono
+10,2020-05-29 02:11:00,db_003,db connection limit,False,,chrono
+10,2020-05-29 02:41:00,docker_008,CPU fault,False,,chrono
+10,2020-05-29 03:41:00,docker_001,CPU fault,False,,chrono
+10,2020-05-30 00:13:00,os_021,network loss,False,,chrono
+10,2020-05-30 02:43:00,os_009,network delay,False,,chrono
+10,2020-05-30 03:43:00,os_020,network delay,False,,chrono
+10,2020-05-30 04:13:00,docker_002,CPU fault,True,3.0,chrono
+10,2020-05-30 05:13:00,os_018,network loss,False,,chrono
+10,2020-05-31 02:47:00,os_021,network delay,False,,chrono
+10,2020-05-31 03:17:00,os_017,network delay,False,,chrono
+10,2020-05-31 03:47:00,db_003,db connection limit,False,,chrono
+10,2020-05-31 04:17:00,docker_004,CPU fault,False,,chrono
+15,2020-05-28 00:47:00,docker_001,CPU fault,False,,chrono
+15,2020-05-28 03:47:00,os_018,network loss,True,15.0,chrono
+15,2020-05-29 02:11:00,db_003,db connection limit,False,,chrono
+15,2020-05-29 02:41:00,docker_008,CPU fault,False,,chrono
+15,2020-05-29 03:41:00,docker_001,CPU fault,False,,chrono
+15,2020-05-30 00:13:00,os_021,network loss,False,,chrono
+15,2020-05-30 02:43:00,os_009,network delay,False,,chrono
+15,2020-05-30 03:43:00,os_020,network delay,False,,chrono
+15,2020-05-30 04:13:00,docker_002,CPU fault,True,3.0,chrono
+15,2020-05-30 05:13:00,os_018,network loss,False,,chrono
+15,2020-05-31 02:47:00,os_021,network delay,False,,chrono
+15,2020-05-31 03:17:00,os_017,network delay,False,,chrono
+15,2020-05-31 03:47:00,db_003,db connection limit,False,,chrono
+15,2020-05-31 04:17:00,docker_004,CPU fault,False,,chrono
+30,2020-05-28 00:47:00,docker_001,CPU fault,False,,chrono
+30,2020-05-28 03:47:00,os_018,network loss,False,,chrono
+30,2020-05-29 02:11:00,db_003,db connection limit,False,,chrono
+30,2020-05-29 02:41:00,docker_008,CPU fault,False,,chrono
+30,2020-05-29 03:41:00,docker_001,CPU fault,False,,chrono
+30,2020-05-30 00:13:00,os_021,network loss,False,,chrono
+30,2020-05-30 02:43:00,os_009,network delay,False,,chrono
+30,2020-05-30 03:43:00,os_020,network delay,False,,chrono
+30,2020-05-30 04:13:00,docker_002,CPU fault,False,,chrono
+30,2020-05-30 05:13:00,os_018,network loss,False,,chrono
+30,2020-05-31 02:47:00,os_021,network delay,False,,chrono
+30,2020-05-31 03:17:00,os_017,network delay,False,,chrono
+30,2020-05-31 03:47:00,db_003,db connection limit,False,,chrono
+30,2020-05-31 04:17:00,docker_004,CPU fault,False,,chrono

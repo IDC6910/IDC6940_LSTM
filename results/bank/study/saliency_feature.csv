@@ -1,0 +1,16 @@
+feature,saliency
+Tomcat04||OSLinux-OSLinux_ZABBIX_Host_Uptime,0.0008486074
+Tomcat02||OSLinux-OSLinux_ZABBIX_Host_Uptime,0.0007053735
+Mysql02||Mysql-MySQL_3306_Binlog stmt cache use,0.0006586386
+Tomcat03||OSLinux-OSLinux_ZABBIX_Host_Uptime,0.0006162382
+apache02||OSLinux-OSLinux_FILESYSTEM_-apache_FSUsedSpace,0.00060887425
+Tomcat04||OSLinux-OSLinux_FILESYSTEM_-home_FSInodeUsedPercent,0.0006049934
+Tomcat04||OSLinux-OSLinux_FILESYSTEM_-home_FSUsedSpace,0.0005993388
+Tomcat02||OSLinux-OSLinux_FILESYSTEM_-home_FSUsedSpace,0.00056437415
+Redis01||redis-Redis_6379_Redis  (total_commands_processed),0.0005528637
+Redis01||redis-Redis_6379_Redis  (lru_clock),0.00054982636
+Tomcat01||OSLinux-OSLinux_ZABBIX_Host_Uptime,0.0005451195
+Mysql01||Mysql-MySQL_3306_Innodb buffer pool pages free,0.0005373463
+MG02||OSLinux-OSLinux_ZABBIX_Host_Uptime,0.0005279544
+IG02||OSLinux-OSLinux_FILESYSTEM_-home_FSAvailableSpace,0.00051247556
+apache02||OSLinux-OSLinux_FILESYSTEM_-apache_FSAvailableSpace,0.0005112303

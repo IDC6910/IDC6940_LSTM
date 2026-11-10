@@ -389,6 +389,28 @@ The **metric files** come in two layouts:
 Each combination of a component and a KPI, for example `Tomcat04 ‖ CPU utilisation`,
 is one **time series**, and becomes one input feature for the model.
 
+### Packages
+
+The analysis uses two languages. Python prepares the telemetry and trains the model,
+because the data are large and the LSTM is built with PyTorch. R reads the saved
+results and produces the tables and figures in this report.
+
+**Python**
+
+- **pandas** and **pyarrow**: read the metric CSV files, pivot them into
+  minute-by-feature tables and store them as Parquet files.
+- **NumPy**: cleaning, scaling, windowing and the evaluation metrics (PR-AUC, ROC-AUC,
+  bootstrap intervals).
+- **PyTorch** [@Paszke2019]: defines the LSTM, computes gradients by backpropagation
+  through time and trains the model with Adam.
+
+**R**
+
+- **tidyverse** (readr, dplyr, tidyr, purrr, stringr, ggplot2): read the results,
+  reshape them and draw the figures.
+- **knitr**: format tables.
+- **scales**: format percentages.
+
 ### Load Data
 
 ```{r, warning=FALSE, echo=TRUE, message=FALSE}
@@ -499,37 +521,45 @@ are empty.
 
 #### Cleaning the telemetry
 
-The raw tables are cleaned in four steps:
+The raw tables are cleaned in four steps. To avoid leaking information from the
+test period, steps 2–4 are **fitted on the training days only** and then applied
+unchanged to the validation and test days. They are re-fitted for every
+train/test split; the numbers below are for the chronological split used in the
+Modeling and Results section.
 
 1. **Align to a 1-minute grid.** Every reading is assigned to the minute it falls in,
    and readings within the same minute are averaged. Each day becomes exactly 1,440
    (Bank) or 360 (Telecom) rows. Telecom timestamps are first divided by 1,000 to
-   convert milliseconds to seconds.
-2. **Keep only series present on every day.** A model cannot use a feature that
-   disappears halfway through the data. Some Bank containers (`dockerA1`, `dockerA2`,
-   `dockerB1`, `dockerB2`) stop reporting by 2021-03-24, which removes 248 series;
-   Telecom loses 430 series this way.
-3. **Drop sparse series.** Any series more than 80 % missing on the 1-minute grid is
+   convert milliseconds to seconds. This step looks only at each reading's own
+   timestamp, so it learns nothing from the data.
+2. **Keep only series observed on every training day.** A model cannot learn from a
+   feature that is missing for whole training days. In Bank this removes mainly the
+   containers `dockerA1`, `dockerA2`, `dockerB1` and `dockerB2`, which report only
+   intermittently. If a kept series is missing on a test day, it is treated like any
+   other gap (step 4).
+3. **Drop sparse series.** Any series more than 80 % missing on the training days is
    removed; there is too little data to fill it reliably.
-4. **Fill short gaps.** Within each day, a missing value is filled with the last
-   observed value (or, at the start of a day, the next one), but only for up to twice
-   that series' own sampling interval, and at least 2 minutes. A KPI sampled every
-   2 minutes can therefore be filled for up to 4 minutes, while a longer outage in
-   the data is not hidden. Gaps are never filled across days.
+4. **Fill gaps using past values only.** Within each day, a missing value is filled
+   with the last observed value, for up to twice that series' sampling interval
+   (estimated on the training days) and at least 2 minutes. A KPI sampled every
+   2 minutes can therefore be filled for up to 4 minutes, while a longer outage is not
+   hidden. Values are never filled backwards from a later reading, and never across
+   days, so each minute only uses information available at that minute. Any gap that
+   remains is set to the series' training median.
 
 | | **Bank** | **Telecom** |
 |---|---|---|
 | Raw series | 1,933 | 2,073 |
-| Removed: not present on every day | 248 | 430 |
-| Removed: more than 80 % missing | 120 | 421 |
-| **Features kept** | **1,565** | **1,222** |
-| Components kept | 15 of 18 | 47 of 51 |
-| Missing cells after filling | 4.5 % | 1.1 % |
+| Removed: not observed on every training day | 248 | 421 |
+| Removed: more than 80 % missing on training days | 118 | 421 |
+| **Features kept** | **1,567** | **1,231** |
+| Missing cells after forward-filling, training days | 1.1 % | 1.2 % |
+| Missing cells after forward-filling, all days | 4.9 % | 1.4 % |
 
-: Effect of each cleaning step. {#tbl-cleaning}
+: Effect of each cleaning step, fitted on the training days of the chronological split. {#tbl-cleaning}
 
-The few missing values that remain after filling are set to 0 before the data are
-scaled and windowed (see the Methods section).
+The remaining gaps are more common on the Bank test days than on its training days,
+which is an early sign that the test period behaves differently.
 
 #### Labeling
 
@@ -588,19 +618,799 @@ Three points stand out:
   other belong to the same fault and are not independent. Bank has 136 fault events
   and Telecom only 51, so Telecom results will be less certain.
 
-@fig-overview summarises each system: faults per day, faults by injected reason,
-the share of missing minutes per series before and after gap-filling, and the
-positive rate at each prediction horizon.
+### Data Exploration and Visualization
 
-::: {#fig-overview layout-ncol=1}
+```{r, echo=TRUE}
+eda <- function(system, file)
+  read_csv(file.path("results", system, "eda", file), show_col_types = FALSE)
+recorded_days <- function(system)
+  read_csv(file.path("results", system, "chrono-level", "split.csv"),
+           show_col_types = FALSE) |>
+  filter(horizon == 1) |> pull(days) |> str_split(", ") |> unlist() |> as.Date()
+```
 
-![Bank dataset overview](figures/bank_01_dataset_overview.png){#fig-overview-bank width="100%"}
+#### When faults happen
 
-![Telecom dataset overview](figures/telecom_01_dataset_overview.png){#fig-overview-telecom width="100%"}
+```{r, echo=TRUE, fig.width=9, fig.height=3.4}
+#| label: fig-faults-per-day
+#| fig-cap: "Injected faults per recorded day. Days are shown in order with gaps removed; days with no bar have telemetry but no recorded faults."
+per_day <- bind_rows(
+  tibble(system = "Bank",    day = recorded_days("bank")),
+  tibble(system = "Telecom", day = recorded_days("telecom"))) |>
+  left_join(faults |> mutate(day = as.Date(onset, tz = "Asia/Shanghai")) |>
+              count(system, day, name = "faults"), by = c("system", "day")) |>
+  mutate(faults = replace_na(faults, 0L), label = format(day, "%m-%d"))
 
-Per-system overview of the Bank and Telecom datasets.
-:::
+ggplot(per_day, aes(label, faults)) +
+  geom_col(fill = "#0072B2") +
+  geom_text(aes(label = faults), vjust = -0.3, size = 3) +
+  facet_wrap(~system, scales = "free_x") +
+  labs(x = NULL, y = "Faults") +
+  theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Faults are spread fairly evenly over the Bank days (10 to 21 a day), apart from
+2021-03-05, which has full telemetry but no faults. Telecom is uneven: one fault-heavy
+day in April, four fault-free days in a row (04-20 to 04-23), and then 2 to 8 faults a
+day in late May. Because faults are injected about once an hour in both systems, a
+60-minute look-back window before one fault often contains the aftermath of the
+previous one.
+
+#### How complete the telemetry is
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.4}
+#| label: fig-missingness
+#| fig-cap: "Share of missing minutes per series, on the raw 1-minute grid and after cleaning (series kept for the chronological split, after forward-filling)."
+bind_rows(Bank = eda("bank", "missingness.csv"),
+          Telecom = eda("telecom", "missingness.csv"), .id = "system") |>
+  pivot_longer(c(raw, after_cleaning), names_to = "stage", values_to = "missing") |>
+  filter(!is.na(missing)) |>
+  mutate(stage = recode(stage, raw = "Raw 1-minute grid",
+                        after_cleaning = "After cleaning")) |>
+  ggplot(aes(missing, fill = stage)) +
+  geom_histogram(binwidth = 0.025, position = "identity", alpha = 0.6, boundary = 0) +
+  facet_wrap(~system, scales = "free_y") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("Raw 1-minute grid" = "#009E73", "After cleaning" = "#CC79A7")) +
+  labs(x = "Share of minutes missing", y = "Series", fill = NULL) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+On the raw 1-minute grid most Bank series are 20 % to 70 % missing. This is a
+sampling effect, not data loss: many Bank KPIs are recorded every 2 minutes or once an
+hour. Telecom series are either almost complete or mostly empty. After cleaning, the
+kept series are nearly complete (Bank 4.9 %, Telecom 1.4 % of cells still missing),
+so the LSTM sees a regular grid as the Methods section assumes.
+
+#### What the telemetry looks like around a fault
+
+```{r, echo=TRUE, fig.width=9, fig.height=5.5}
+#| label: fig-closeup
+#| fig-cap: "Four KPIs of the faulty component around one fault in each system, scaled to 0 to 1 over the window shown. The vertical line is the recorded fault start."
+bind_rows(eda("bank", "closeup.csv"), eda("telecom", "closeup.csv")) |>
+  mutate(panel = paste0(component, ", ", reason, " (", onset, ")"),
+         kpi = str_remove(kpi, "^OSLinux-OSLinux_|^container\\.")) |>
+  ggplot(aes(minute, value, colour = kpi)) +
+  geom_vline(xintercept = 0) +
+  geom_line() +
+  facet_wrap(~panel, ncol = 1, scales = "free_x") +
+  labs(x = "Minutes relative to fault start", y = "Scaled value", colour = NULL) +
+  theme_bw() + theme(legend.position = "bottom") +
+  guides(colour = guide_legend(ncol = 2))
+```
+
+The two close-ups show why single examples are hard to read. On Bank server `MG01`,
+filesystem metrics grow steadily through the 30 minutes before a "high memory usage"
+fault, which at first looks like a warning sign. But they keep growing at the same
+pace for the hour after it, so the growth is more likely a steady trend, such as a
+disk filling up, than a sign of this fault. The memory metrics themselves do not move,
+so the label describes what was injected, not where it shows up. On Telecom container
+`docker_004`, CPU and memory use jump about two minutes after the recorded fault start
+and stay high for about six minutes. A similar CPU burst about 20 minutes earlier
+returns to normal without a fault, so it is unclear whether such bursts are warnings
+or noise.
+
+#### Does the telemetry change before faults in general?
+
+To look beyond single examples, we measured how much the telemetry moves around
+every fault. For each fault with at least 60 minutes of history on the same day, each
+feature is compared with its own median 31 to 60 minutes before the fault, in units
+of its training IQR, and the absolute change is averaged over all features. The same
+is done at 200 to 300 randomly chosen times at least 90 minutes away from any fault.
+This gives 126 fault windows for Bank and 40 for Telecom.
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.6}
+#| label: fig-onset-profile
+#| fig-cap: "Average change in the telemetry relative to a baseline 31 to 60 minutes earlier, around fault starts and around random fault-free times. Ribbons are 95 % confidence intervals across windows."
+bind_rows(Bank = eda("bank", "onset_profile.csv"),
+          Telecom = eda("telecom", "onset_profile.csv"), .id = "system") |>
+  mutate(kind = recode(kind, fault = "Around a fault start",
+                       random = "Random fault-free time")) |>
+  group_by(system, kind, minute) |>
+  summarise(mean = mean(change), se = sd(change) / sqrt(n()), .groups = "drop") |>
+  ggplot(aes(minute, mean, colour = kind, fill = kind)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_ribbon(aes(ymin = mean - 1.96 * se, ymax = mean + 1.96 * se),
+              alpha = 0.2, colour = NA) +
+  geom_line() +
+  facet_wrap(~system, scales = "free_y") +
+  scale_colour_manual(values = c("#D55E00", "#0072B2")) +
+  scale_fill_manual(values = c("#D55E00", "#0072B2")) +
+  labs(x = "Minutes relative to fault start (or random time)",
+       y = "Mean |change| (training IQRs)", colour = NULL, fill = NULL) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+```{r, echo=TRUE}
+bind_rows(Bank = eda("bank", "onset_profile.csv"),
+          Telecom = eda("telecom", "onset_profile.csv"), .id = "System") |>
+  filter(kind == "fault") |>
+  mutate(period = case_when(minute < -30 ~ "base",
+                            minute < 0 ~ "pre",
+                            minute <= 5 ~ "onset",
+                            TRUE ~ "later")) |>
+  group_by(System, reason, period) |>
+  summarise(change = mean(change), n = n_distinct(onset), .groups = "drop") |>
+  pivot_wider(names_from = period, values_from = change) |>
+  transmute(System, `Fault type` = reason, Faults = n,
+            `Last 30 min before start` = sprintf("%+.3f", pre - base),
+            `First 5 min after start` = sprintf("%+.3f", onset - base)) |>
+  arrange(System, desc(Faults)) |>
+  kable(caption = "Average telemetry change by fault type, relative to 31 to 60 minutes before the fault (training IQRs).")
+```
+
+@fig-onset-profile shows the central fact about these data. In both systems the
+telemetry around faults is somewhat busier than at quiet times throughout the hour
+(faults are injected about once an hour, so earlier faults are still settling), but
+the gap between the two curves **does not grow in the minutes before a fault**. It
+widens only at the fault start: in Bank the average change rises from about 0.60 in
+the last minutes before the start to about 0.68 in the first minutes after it, and in
+Telecom from about 0.55 to about 0.62, while the random-time curves only drift up
+slowly as the distance from their baseline grows.
+
+The table breaks this down by fault type. Every type with more than three faults
+changes the telemetry more in the first 5 minutes after its start than in the 30
+minutes before it. The fault types with the largest pre-onset change are
+Bank's "high disk space usage" and "network packet loss", but even there the change
+in the 30 minutes before the start is smaller than in the 5 minutes after it.
+
+#### Unexpected patterns
+
+- **Fault-free days.** Bank 2021-03-05 and Telecom 2020-04-20 to 04-23 have complete
+  telemetry but no recorded faults. They may be quiet periods or gaps in the fault
+  record; the dataset does not say which. Either way, they make some days look very
+  different from others in their share of positive minutes.
+- **Slow trends across days.** Some metrics, such as disk usage on the Bank `IG`
+  servers, grow steadily over the recording. Such a metric separates early days from
+  late days, and therefore days with few faults from days with many, without saying
+  anything about the minutes before a particular fault.
+- **Labels describe the injection, not the symptom.** The "high memory usage" fault in
+  @fig-closeup does not show up in the memory metrics of the faulty server, which
+  argues for a model that can use all features rather than a hand-picked few.
+- **Telecom covers only 00:00 to 05:59.** Every Telecom minute is in the early
+  morning, so its daily load pattern differs from Bank's 24-hour days.
+
+These observations set expectations for the model: if the telemetry rarely changes
+before a fault, an LSTM, however good at remembering the past, has little to work
+with, and slow day-level trends may be the strongest signal available to it.
 
 ### Modeling and Results
+
+We apply the same model and the same procedure to both systems. Bank is analysed
+first because it has the most fault events (136) and full 24-hour days; Telecom (51
+events, 6 hours a day) then shows whether the findings carry over to a different
+system.
+
+The LSTM is trained in Python with PyTorch. The scripts are in the `code/` folder of
+this repository and their outputs in `results/<system>/`; the report reads the saved
+results, so rendering it does not retrain the model.
+
+```{r, echo=TRUE}
+res <- function(system, run, file)
+  read_csv(file.path("results", system, run, file), show_col_types = FALSE)
+pct <- function(x, d = 1) scales::percent(x, accuracy = 10^-d)
+
+show_metrics <- function(system, run) {
+  alarmed <- res(system, run, "predictions.csv") |>
+    group_by(horizon) |> summarise(alarmed = mean(alarm))
+  res(system, run, "metrics.csv") |>
+    left_join(alarmed, by = "horizon") |>
+    transmute(`H (min)` = horizon,
+              `Base rate` = round(base_rate, 3),
+              `PR-AUC [95 % CI]` = sprintf("%.3f [%.3f, %.3f]", pr_auc, pr_auc_lo, pr_auc_hi),
+              Lift = sprintf("%.2f", pr_lift),
+              `ROC-AUC` = round(roc_auc, 3),
+              `Minutes alarmed` = pct(alarmed),
+              `Faults caught` = sprintf("%d / %d", events_detected, n_events),
+              `False alarms / day` = round(false_alarms_per_day, 1))
+}
+
+plot_history <- function(system) {
+  res(system, "chrono-level", "history.csv") |>
+    mutate(H = factor(paste0("H = ", horizon),
+                      levels = paste0("H = ", c(1, 3, 5, 10, 15, 30)))) |>
+    pivot_longer(c(train_loss, val_pr_auc), names_to = "metric") |>
+    mutate(metric = recode(metric, train_loss = "Training loss",
+                           val_pr_auc = "Validation PR-AUC")) |>
+    ggplot(aes(epoch, value, colour = H)) +
+    geom_line() +
+    geom_point(data = \(d) filter(d, epoch == best_epoch & metric == "Validation PR-AUC")) +
+    facet_wrap(~metric, scales = "free_y") +
+    labs(x = "Epoch", y = NULL, colour = NULL) +
+    theme_bw()
+}
+
+plot_timeline <- function(system, sys_name, test_start, h = 5) {
+  pred <- res(system, "chrono-level", "predictions.csv") |> filter(horizon == h) |>
+    mutate(time = as.POSIXct(timestamp, origin = "1970-01-01", tz = "Asia/Shanghai"),
+           day  = format(time, "%m-%d"))
+  thr <- res(system, "chrono-level", "metrics.csv") |> filter(horizon == h) |> pull(threshold)
+  onsets <- faults |>
+    filter(system == sys_name,
+           as.Date(onset, tz = "Asia/Shanghai") >= as.Date(test_start)) |>
+    mutate(day = format(onset, "%m-%d"))
+  ggplot(pred, aes(time, score)) +
+    geom_vline(data = onsets, aes(xintercept = onset), colour = "#D55E00", alpha = 0.5) +
+    geom_line(colour = "#0072B2", linewidth = 0.3) +
+    geom_hline(yintercept = thr, linetype = "dashed") +
+    facet_wrap(~day, scales = "free_x", nrow = 1) +
+    scale_x_datetime(date_labels = "%H:%M") +
+    labs(x = "Time (UTC+8)", y = "Predicted probability") +
+    theme_bw()
+}
+
+plot_drift <- function(system, strip) {
+  drift <- read_csv(file.path("results", system, "drift.csv"), show_col_types = FALSE) |>
+    mutate(feature = str_replace(feature, strip, ": "),
+           label = format(as.Date(day), "%m-%d"),
+           x = as.integer(factor(label)))
+  days <- distinct(drift, x, label, split)
+  ggplot(drift, aes(x, scaled_mean, colour = feature)) +
+    geom_rect(data = days,
+              aes(xmin = x - 0.5, xmax = x + 0.5, ymin = -Inf, ymax = Inf, fill = split),
+              inherit.aes = FALSE, alpha = 0.15) +
+    geom_line() + geom_point() +
+    scale_x_continuous(breaks = days$x, labels = days$label) +
+    scale_fill_manual(values = c(train = "grey60", val = "#E69F00", test = "#D55E00")) +
+    labs(x = "Day (recorded days only)", y = "Daily mean (training IQRs)",
+         colour = NULL, fill = "Split") +
+    theme_bw() +
+    theme(legend.position = "bottom", legend.box = "vertical",
+          axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+runs <- c("chrono-level"  = "Chronological, level",
+          "chrono-change" = "Chronological, change",
+          "cv-level"      = "Cross-validation, level",
+          "cv-change"     = "Cross-validation, change")
+
+plot_lift <- function(system) {
+  imap_dfr(runs, \(lab, run) res(system, run, "metrics.csv") |> mutate(run = lab)) |>
+    mutate(run = factor(run, levels = runs),
+           lift_lo = pr_auc_lo / base_rate, lift_hi = pr_auc_hi / base_rate) |>
+    ggplot(aes(factor(horizon), pr_lift, colour = run)) +
+    geom_hline(yintercept = 1, linetype = "dashed") +
+    geom_pointrange(aes(ymin = lift_lo, ymax = lift_hi),
+                    position = position_dodge(width = 0.6)) +
+    scale_y_log10() +
+    scale_colour_manual(values = c("#0072B2", "#56B4E9", "#D55E00", "#E69F00")) +
+    labs(x = "Horizon H (minutes)", y = "PR-AUC / base rate (log scale)", colour = NULL) +
+    theme_bw() + theme(legend.position = "bottom")
+}
+```
+
+#### Preprocessing for the model
+
+The data are **split by day first**, and every step that learns anything from the
+data is then fitted on the training days only and applied unchanged to the
+validation and test days. This keeps the test period completely out of the model.
+
+1. **Split by day.** Neighbouring minutes are almost identical, so a random split of
+   minutes would put near-copies of the same moment in both training and test sets.
+   We split by whole day and keep time order: the earliest days for training, the next
+   day for validation, and the latest days (about 30 %) for testing. Bank uses 6 / 1 / 3
+   days and Telecom 10 / 1 / 4. The validation day is used for early stopping and for
+   choosing the alarm threshold.
+2. **Clean the telemetry** as described in @tbl-cleaning: keep series observed on every
+   training day, drop series mostly missing on training days, and fill gaps from past
+   values only.
+3. **Scale.** Each feature is centred on its training median and divided by its
+   training interquartile range (IQR), then clipped to $\pm 10$. KPIs are heavy-tailed,
+   and the median and IQR are not pulled around by extreme values.
+4. **Select features.** Of the cleaned features (1,567 for Bank, 1,231 for Telecom), we
+   keep the $k = 128$ with the highest ANOVA $F$-statistic between positive and
+   negative training minutes.
+5. **Build windows.** Each usable minute $t$ becomes one $60 \times 128$ input: the 60
+   minutes of scaled telemetry ending at $t$.
+6. **Balance the training set.** Every positive training window is kept and negatives
+   are randomly subsampled to five per positive; the loss also gives positives a weight
+   equal to the negative-to-positive ratio. The validation and test sets are not
+   resampled, so they keep the real, rare positive rate.
+
+| Step | Learned from | Applied to |
+|---|---|---|
+| Series kept (observed on every day, ≤ 80 % missing) | training days | all days |
+| Gap-fill limit per series; median for leftover gaps | training days | all days |
+| Gap filling | past values in the same day only | all days |
+| Scaling (median, IQR) | training days | all days |
+| Feature selection (ANOVA $F$) | training days and their labels | all days |
+| Negative subsampling, positive-class weight | training days | training only |
+| Early stopping, alarm threshold | validation day | not applied to data |
+| Test-day labels | not used | scoring only |
+
+: What each preprocessing step is fitted on. {#tbl-fitted-on}
+
+```{r, echo=TRUE}
+bind_rows(Bank    = res("bank",    "chrono-level", "split.csv"),
+          Telecom = res("telecom", "chrono-level", "split.csv"), .id = "System") |>
+  filter(horizon == 5) |>
+  mutate(Split = str_to_title(split),
+         Days  = str_replace_all(days, "20(20|21)-", ""),
+         `Positive share` = pct(positive / windows)) |>
+  select(System, Split, Days, Windows = windows, Positive = positive,
+         `Positive share`, `Tensor shape` = shape) |>
+  kable(caption = "Data after preprocessing, chronological split, 5-minute horizon. The training set is balanced to 5 negatives per positive; validation and test keep the true rate.")
+```
+
+#### Evaluation
+
+Because failures are rare, accuracy is not useful: a model that never raises an alarm
+is 95 % accurate at $H = 5$. We report:
+
+- **PR-AUC** (area under the precision–recall curve). A model that guesses at random
+  scores the **base rate**, the share of positive minutes, so we also report the
+  **lift**, PR-AUC divided by the base rate. A lift of 1 means no skill. The 95 %
+  interval comes from resampling 60-minute blocks of the test set; if it includes the
+  base rate, the model cannot be distinguished from guessing.
+- **ROC-AUC**, where 0.5 means no skill.
+- **Faults caught**: the share of faults with at least one alarm in the $H$ minutes
+  before they start.
+- **False alarms per day**: separate bursts of alarms with no fault following them.
+  A Telecom "day" is the 6 hours of recorded telemetry.
+
+PR-AUC and ROC-AUC measure how well the model *ranks* minutes and need no threshold.
+To turn probabilities into alarms, the threshold is set on the validation day so that
+the model would alarm on about 2 % of minutes (30 alarm-minutes per 24 hours). We also
+report the share of test minutes that actually cross this threshold. If it is far
+from 2 %, the model's scores have shifted between the validation and test days, and
+the fault and false-alarm counts mostly reflect that shift rather than skill.
+
+#### Bank
+
+##### Training
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.6}
+#| label: fig-bank-training
+#| fig-cap: "Training loss and validation PR-AUC by epoch for each horizon (Bank, chronological split). The dot marks the epoch whose weights were kept."
+plot_history("bank")
+```
+
+Training is fast: the balanced training set has only a few thousand windows, and each
+horizon finishes in a few seconds. Training loss falls steadily, but validation PR-AUC
+peaks early, between epochs 1 and 6, so early stopping ends every run within 10 epochs
+(@fig-bank-training). On the validation day the model does find some signal: at
+$H = 10$ its best validation PR-AUC is 0.24 against a base rate of 0.10, and at
+$H = 30$ it is 0.58 against 0.28.
+
+##### Results on the test days
+
+```{r, echo=TRUE}
+show_metrics("bank", "chrono-level") |>
+  kable(caption = "LSTM on the Bank test days (2021-03-23 to 03-25), chronological split.")
+```
+
+On the three test days the LSTM ranks minutes **slightly better than chance at the
+middle horizons, but not reliably**. At $H = 3$ to $15$ PR-AUC is above the base rate
+(lift 1.2–2.6) and ROC-AUC reaches 0.55–0.63, but every 95 % interval still includes
+the base rate. At $H = 1$ and $H = 30$ there is no skill at all.
+
+The model also **raises no alarms**: on every horizon, the test scores stay below the
+threshold chosen on the validation day, so none of the 43 test faults is flagged.
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.8}
+#| label: fig-bank-timeline
+#| fig-cap: "Predicted failure probability on the three Bank test days at H = 5. Red lines mark fault onsets; the dashed line is the alarm threshold chosen on the validation day."
+plot_timeline("bank", "Bank", "2021-03-23")
+```
+
+@fig-bank-timeline shows why. The predicted probability moves in slow waves over hours
+rather than rising in the minutes before each fault, and the whole curve sits lower
+than on the validation day.
+
+##### What the model is picking up
+
+The features ranked highest by the $F$-test are disk metrics on the two `IG` servers
+(used, available and total space) and connection counts on `Mysql01`. @fig-bank-drift
+shows the daily level of the top four.
+
+```{r, echo=TRUE, fig.width=9, fig.height=4.2}
+#| label: fig-bank-drift
+#| fig-cap: "Daily mean of the four top-ranked Bank features, in units of training IQR from the training median. Shading shows the split each day belongs to."
+plot_drift("bank", "\\|\\|OSLinux-OSLinux_FILESYSTEM_-tomcat_")
+```
+
+Used disk space grows steadily across the training days, and the share of positive
+minutes also differs from day to day: 0 % on the fault-free 03-05 and up to 9 % on
+03-09. A slowly drifting feature can therefore look predictive just because it tells
+the days apart. Within a single day, used disk space on `IG02` is only about a quarter
+of a standard deviation higher before faults than at other times. The $F$-test ranks
+these features highly, and the LSTM learns them, mostly because of differences
+*between* days rather than warning signs *before* each fault.
+
+The test days stay inside the training range for these features, but the mix of
+inputs still shifts: 2.9 % of scaled test values are clipped at $\pm 10$, against 0.5 %
+on the training days. That is enough to move the model's scores below the validation
+threshold.
+
+##### Checking the explanation
+
+Two further experiments test whether the signal comes from day-level differences:
+
+- **Cross-validation.** Each pair of consecutive days is held out once as the test set
+  (5 folds), so training always includes days from both ends of March. All cleaning,
+  scaling and feature selection are re-fitted inside each fold, and the out-of-fold
+  predictions are pooled before scoring. Because some training days come *after* the
+  test days, this is a diagnostic, not a realistic forecast.
+- **Change inputs.** Each window has its own median subtracted, feature by feature, so
+  the model sees only how the metrics change within the hour and not their level.
+  Features are also ranked on within-day variation, which removes day-to-day drift
+  from the selection.
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.8}
+#| label: fig-bank-lift
+#| fig-cap: "Bank: PR-AUC lift over the base rate with 95 % intervals, for both splits and both input types. A lift of 1 (dashed line) means no skill."
+plot_lift("bank")
+```
+
+```{r, echo=TRUE}
+show_metrics("bank", "cv-level") |>
+  kable(caption = "Bank with cross-validation (5 folds, all 10 days tested once), level inputs.")
+```
+
+The results support the explanation (@fig-bank-lift):
+
+- With **cross-validation and level inputs**, the LSTM is consistently above chance:
+  lift 1.2–1.5 at every horizon, ROC-AUC 0.55–0.60, and at four of the six horizons
+  the interval excludes the base rate.
+- With **change inputs**, which remove the day-level information, this advantage
+  disappears: lift is 0.94–1.05 at every horizon from 3 to 30 minutes.
+- With the **chronological split**, neither input type gives a reliable signal.
+
+The fault counts in the cross-validation table look better (21–33 % of faults caught),
+but the thresholds there alarm on 12–24 % of minutes instead of 2 %; except at
+$H = 1$, random alarms at that rate would catch as many faults or more.
+
+##### What the Bank data reveal
+
+For Bank, the LSTM **does not find reliable warning signs in the hour before an
+injected fault**. The little skill it shows comes from slow differences between days,
+such as disk usage that grows over the recording. That information helps when training
+and test days are mixed, but not when the model has to predict later days from earlier
+ones, which is how it would be used in practice.
+
+#### Telecom
+
+Telecom is a harder setting: 15 six-hour days, 51 faults instead of 136, and three
+times as many components. The chronological split trains on 10 days (04-11, 04-20 to
+04-23 and 05-22 to 05-26, with 29 faults), validates on 05-27 (8 faults) and tests on
+05-28 to 05-31 (14 faults). Four of the training days have no faults at all.
+
+##### Training
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.6}
+#| label: fig-telecom-training
+#| fig-cap: "Training loss and validation PR-AUC by epoch for each horizon (Telecom, chronological split)."
+plot_history("telecom")
+```
+
+As with Bank, validation PR-AUC peaks within the first few epochs (between epochs 1
+and 8) and early stopping ends every run within 12 epochs. The validation day is
+unusually fault-heavy (13 % of minutes positive at $H = 5$), so validation PR-AUC
+looks high; relative to its base rate the gain is modest, for example 0.41 against
+0.27 at $H = 10$.
+
+##### Results on the test days
+
+```{r, echo=TRUE}
+show_metrics("telecom", "chrono-level") |>
+  kable(caption = "LSTM on the Telecom test days (2020-05-28 to 05-31), chronological split. A day is 6 hours of telemetry.")
+```
+
+On the Telecom test days the LSTM is **no better than chance** at any horizon:
+lift is 1.0–1.3, ROC-AUC stays between 0.46 and 0.54, and every interval includes the
+base rate. With only 14 test faults, the intervals are also much wider than for Bank.
+
+The alarms fail in the opposite way to Bank. The validation threshold is *too low*
+for the test days, so the model alarms on 53–76 % of test minutes at $H = 3$ to $15$
+instead of about 2 %. It catches 7–8 of the 14 faults, but only because it is
+alarming most of the time.
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.8}
+#| label: fig-telecom-timeline
+#| fig-cap: "Predicted failure probability on the four Telecom test days at H = 5 (00:00–05:59 each day). Red lines mark fault onsets; the dashed line is the alarm threshold chosen on the validation day."
+plot_timeline("telecom", "Telecom", "2020-05-28")
+```
+
+##### What the model is picking up
+
+The top-ranked Telecom features are memory metrics of host `os_021` (used and
+available memory, in absolute and percentage terms), followed by session and memory
+metrics of database `db_002` and host `os_019`.
+
+```{r, echo=TRUE, fig.width=9, fig.height=4.2}
+#| label: fig-telecom-drift
+#| fig-cap: "Daily mean of the four top-ranked Telecom features (memory on host os_021), in units of training IQR from the training median."
+plot_drift("telecom", "\\|\\|node\\.")
+```
+
+@fig-telecom-drift shows the same pattern as Bank, in a stronger form. Memory use on
+`os_021` is far below normal on 04-11 and 05-26, which are the two training days with
+the most faults (10 % and 16 % of minutes positive), and at or slightly above normal
+on the four fault-free days. The $F$-test therefore ranks this feature at the top, although
+within a day it differs between pre-fault and other minutes by only about a tenth of a
+standard deviation. The validation day breaks the pattern: it is fault-heavy but has
+*high* memory use, and 13 % of its scaled values are clipped, against 3 % on the
+training and test days. A threshold chosen on such a day does not transfer.
+
+##### Checking the explanation
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.8}
+#| label: fig-telecom-lift
+#| fig-cap: "Telecom: PR-AUC lift over the base rate with 95 % intervals, for both splits and both input types."
+plot_lift("telecom")
+```
+
+Running the same two experiments (8 cross-validation folds) gives no consistent
+signal (@fig-telecom-lift). With level inputs, cross-validation lift is 0.9–1.2; with
+change inputs it is 0.9–1.6, and every interval includes the base rate. The one
+exception is the chronological split with change inputs at $H = 1$ (lift 6.1, ROC-AUC
+0.76, 3 of 14 faults caught). That result rests on 12 positive test minutes and
+concerns the single minute before the recorded start, where the fault may already be
+under way, so we treat it as a lead for future work rather than a finding.
+
+##### What the Telecom data reveal
+
+Telecom confirms the Bank result. The LSTM latches onto features that separate
+fault-heavy days from quiet ones, here memory use on one host, and this does not
+carry over to new days. With 51 faults in total and 14 in the test period, Telecom
+also shows how little data a fault-prediction study has once it is counted in events
+rather than minutes.
+
+#### Studying the LSTM
+
+The results so far describe what the model achieves. This part looks at *how* the
+LSTM behaves: whether it uses its memory, how sensitive it is to its settings, what
+its gates do, and which inputs drive its predictions. All experiments use the
+chronological split, level inputs and a horizon of $H = 10$ minutes, a middle horizon
+where about 10 % of minutes are positive in both systems. Each setting is trained once
+and scored on the validation day and on the test days.
+
+```{r, echo=TRUE}
+study <- function(system, file)
+  read_csv(file.path("results", system, "study", file), show_col_types = FALSE)
+both <- function(file)
+  bind_rows(Bank = study("bank", file), Telecom = study("telecom", file), .id = "system")
+```
+
+##### Memory length and model size
+
+The defining feature of an LSTM is its ability to remember. If warning signs built up
+over the hour before a fault, a longer look-back window should help. We varied the
+look-back from $L = 1$ minute, which gives the LSTM a single time step and so no
+sequence at all, up to $L = 120$ minutes. We also varied the number of hidden units
+from $d = 8$ to $d = 128$, which changes the number of parameters from about 4,400 to
+about 132,000.
+
+```{r, echo=TRUE, fig.width=9, fig.height=5.2}
+#| label: fig-study-settings
+#| fig-cap: "PR-AUC lift on the validation day and on the test days for different look-back lengths (left) and hidden sizes (right), H = 10. Test intervals are 95 % block-bootstrap intervals; the dashed line is no skill."
+bind_rows(both("lookback.csv") |> mutate(setting = "Look-back L (minutes)", value = lookback),
+          both("hidden.csv")   |> mutate(setting = "Hidden units d",        value = hidden)) |>
+  transmute(system, setting, value = factor(value),
+            Validation = val_lift, Test = test_lift,
+            lo = test_lo / test_base, hi = test_hi / test_base) |>
+  pivot_longer(c(Validation, Test), names_to = "data", values_to = "lift") |>
+  mutate(lo = if_else(data == "Test", lo, NA_real_),
+         hi = if_else(data == "Test", hi, NA_real_)) |>
+  ggplot(aes(value, lift, colour = data)) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  geom_pointrange(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.4),
+                  na.rm = TRUE) +
+  geom_point(position = position_dodge(width = 0.4)) +
+  facet_grid(system ~ setting, scales = "free_x") +
+  scale_colour_manual(values = c(Test = "#D55E00", Validation = "#0072B2")) +
+  labs(x = NULL, y = "PR-AUC / base rate", colour = NULL) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+**Memory does not help** (@fig-study-settings, left). On Bank, an LSTM that sees only
+the current minute ($L = 1$) reaches a test lift of 1.43, about the same as with the
+full hour ($L = 60$, lift 1.47); every other look-back falls between 1.15 and 1.35.
+On Telecom the test lift is between 0.85 and 1.07 for every look-back. In both
+systems the model does as well without a sequence as with one, so the order of the
+minutes adds nothing that the current readings do not already contain.
+
+**Model size does not matter much either** (@fig-study-settings, right). On Bank the
+test lift ranges from 1.09 to 1.47 across hidden sizes; on Telecom from 0.99 to 1.78,
+and all of these intervals include the base rate.
+
+**Validation scores do not predict test scores.** Every setting looks useful on the
+validation day (lift 2.3 to 3.4 on Bank, 1.2 to 2.4 on Telecom), yet test lift is much
+lower. Choosing the setting with the best validation score would have picked
+$L = 30$ for Bank (test lift 1.18) and $d = 8$ for Telecom (test lift 1.09), neither of
+which is the best on the test days. The validation day, one day just after training,
+is not representative of the later test days.
+
+##### Stability across random seeds
+
+```{r, echo=TRUE}
+both("seeds.csv") |>
+  group_by(System = system) |>
+  summarise(Runs = n(),
+            `Validation lift, mean (SD)` = sprintf("%.2f (%.2f)", mean(val_lift), sd(val_lift)),
+            `Test lift, mean (SD)` = sprintf("%.2f (%.2f)", mean(test_lift), sd(test_lift)),
+            `Test lift range` = sprintf("%.2f to %.2f", min(test_lift), max(test_lift)),
+            `Test ROC-AUC range` = sprintf("%.2f to %.2f", min(test_roc), max(test_roc))) |>
+  kable(caption = "The default LSTM (L = 60, d = 64) trained with five random seeds, H = 10.")
+```
+
+Training the same model with five different random seeds changes the result as much
+as changing its settings. On Bank the test lift ranges from 0.87 to 1.48 (mean 1.23),
+so one seed is worse than random guessing and another is among the best runs of the
+whole study. On Telecom it ranges from 1.01 to 1.34 (mean 1.14). Any single run,
+including the results reported above, should be read with this spread in mind.
+
+##### Inside the LSTM: the gates
+
+Because the gate equations in @eq-lstm are explicit, we can compute the gate values
+the trained model produces. @fig-study-gates shows the forget, input and output gates,
+averaged over all hidden units and over the test windows, at each minute of the
+60-minute window. Windows before a fault and other windows are shown separately.
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.6}
+#| label: fig-study-gates
+#| fig-cap: "Mean gate activation at each minute of the look-back window (0 = the current minute), default model, test windows, H = 10."
+both("gates.csv") |>
+  mutate(gate = str_to_title(gate)) |>
+  ggplot(aes(minute, mean, colour = gate, linetype = label)) +
+  geom_line() +
+  facet_wrap(~system) +
+  scale_colour_manual(values = c(Forget = "#D55E00", Input = "#009E73", Output = "#0072B2")) +
+  coord_cartesian(ylim = c(0.3, 0.6)) +
+  labs(x = "Minute in window", y = "Mean gate value", colour = "Gate", linetype = NULL) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+The gates explain why memory length does not matter. In Bank the forget gate averages
+about 0.39 at every minute. Because the cell state is multiplied by the forget gate at
+each step ($c_t = f_t \odot c_{t-1} + \dots$), information from $k$ minutes ago is
+scaled by roughly $0.39^k$: about 15 % survives two minutes and less than 1 % survives
+five. The trained Bank LSTM has learned to **forget almost immediately**, so in practice
+it acts on the last minute or two. In Telecom all three gates stay close to 0.5, which
+is the value of the sigmoid at zero: the network has barely moved away from its
+starting point before early stopping ends training, again consistent with there being
+little to learn. In both systems the gate values before faults and at other times are
+almost identical.
+
+##### What the predictions depend on
+
+To see which inputs drive the predictions, we computed the gradient of the model's
+output with respect to every input value and multiplied it by that value
+(input × gradient). Large values mean that changing the input would change the
+prediction. Averaging over features gives the importance of each minute of the window
+(@fig-study-saliency); averaging over minutes gives the importance of each feature.
+
+```{r, echo=TRUE, fig.width=9, fig.height=3.4}
+#| label: fig-study-saliency
+#| fig-cap: "Mean |input × gradient| for each minute of the look-back window (log scale), default model, test windows, H = 10."
+both("saliency_time.csv") |>
+  ggplot(aes(minute, saliency, linetype = label)) +
+  geom_line(colour = "#0072B2") +
+  scale_y_log10() +
+  facet_wrap(~system) +
+  labs(x = "Minute in window (0 = the current minute)", y = "Mean |input x gradient|",
+       linetype = NULL) +
+  theme_bw() + theme(legend.position = "bottom")
+```
+
+In Bank the current minute alone carries 57 % to 64 % of the total importance and the
+last three minutes 73 % to 80 %, matching the short memory seen in the gates. In
+Telecom the importance is spread a little more widely, but the last five minutes still
+carry about half of it. Windows before faults and other windows look the same.
+
+```{r, echo=TRUE}
+both("saliency_feature.csv") |>
+  group_by(system) |> slice_head(n = 8) |>
+  mutate(Rank = row_number(),
+         Component = str_extract(feature, "^[^|]+"),
+         KPI = str_remove(feature, "^[^|]+\\|\\|") |>
+           str_remove("^OSLinux-OSLinux_|^Mysql-MySQL_3306_|^redis-Redis_6379_")) |>
+  ungroup() |>
+  select(System = system, Rank, Component, KPI) |>
+  kable(caption = "The eight features with the largest mean |input x gradient|, default model, H = 10.")
+```
+
+The most influential Bank features are revealing: host **uptime** on three Tomcat
+servers, Redis's internal **clock** (`lru_clock`) and its **cumulative** command count,
+and used disk space. All of these grow steadily with time, so they tell the model
+*when* a minute is, not whether a fault is coming. This is the same day-level
+information that the cross-validation and change-input experiments pointed to, now
+seen directly inside the model. In Telecom the most influential features are memory
+use on host `os_014`, Redis key counts and database load, again slowly varying levels
+rather than sudden changes.
+
+##### What the LSTM study shows
+
+The LSTM's defining strength, a long memory controlled by learned gates, goes unused
+on these data. Trained on OpenRCA telemetry, it learns to forget within a minute or
+two, relies on the current readings, and leans on features that track elapsed time.
+This is a sensible response to the data rather than a failure of training: as
+@fig-onset-profile showed, the telemetry does not change before faults, so there is
+no long-range pattern for the memory to hold.
+
+#### Comparing the two systems
+
+```{r, echo=TRUE}
+bind_rows(Bank    = res("bank",    "chrono-level", "metrics.csv"),
+          Telecom = res("telecom", "chrono-level", "metrics.csv"), .id = "System") |>
+  group_by(System) |>
+  summarise(`Lift range` = sprintf("%.2f to %.2f", min(pr_lift), max(pr_lift)),
+            `ROC-AUC range` = sprintf("%.2f to %.2f", min(roc_auc), max(roc_auc)),
+            `Horizons with CI above base rate` =
+              sprintf("%d of %d", sum(pr_auc_lo > base_rate), n()),
+            `Test faults` = first(n_events)) |>
+  kable(caption = "Chronological split, level inputs: summary over the six horizons.")
+```
+
+Across two systems with different domains, components and fault types, the picture
+is the same: on later days the LSTM ranks minutes no better than chance, its scores
+shift between days so that a fixed alarm threshold either never fires (Bank) or fires
+most of the time (Telecom), and the features it relies on mainly tell days apart.
+
+### Conclusion
+
+**Key findings.**
+
+- An LSTM given the last 60 minutes of metric telemetry **did not reliably predict
+  injected failures** in either OpenRCA system when tested on later days. Across
+  horizons from 1 to 30 minutes, PR-AUC stayed within the uncertainty of the base rate
+  for both Bank (43 test faults) and Telecom (14 test faults).
+- The modest skill the model showed came from **differences between days** (disk
+  usage growing over the Bank recording, memory use on one Telecom host) rather than
+  warning signs in the minutes before a fault. When the inputs were reduced to
+  within-hour changes, the skill disappeared.
+- The model's output **shifted from day to day**, so an alarm threshold tuned on one
+  day never fired on the Bank test days and fired most of the time on the Telecom test
+  days.
+- The telemetry itself **changes at the start of a fault, not before it**. Averaged
+  over all faults, the metrics move no more in the hour before a fault than at quiet
+  times, and then jump in the first minutes after it.
+- The LSTM's memory **went unused**. A model that sees only the current minute did as
+  well as one that sees the whole hour. In Bank the trained forget gate keeps less than
+  1 % of the cell state after five minutes and the last three minutes carry about
+  three quarters of the input importance; in Telecom the gates barely moved from their
+  starting values. The most influential inputs were counters and clocks such
+  as host uptime, which encode elapsed time rather than system health.
+- Results varied as much between **random seeds** as between settings, and the
+  setting that looked best on the validation day was never the best on the test days.
+
+**Implications.**
+
+- For **choosing an LSTM**, its advantage depends on the data containing patterns
+  that unfold over time. When warning signs do not exist, as in these injected-fault
+  data, the gates learn to discard the past and the LSTM behaves like a model of the
+  current minute, with extra parameters and extra variance from training.
+- For **this kind of data**, minute-level early warning appears very hard. Many
+  injected faults (CPU load, network loss, latency) are switched on abruptly, so the
+  metrics may not change until the fault starts. Benchmarks such as OpenRCA, built for
+  root-cause analysis, may be better suited to detecting and diagnosing failures than
+  to predicting them.
+- For **evaluating failure prediction**, the design choices matter as much as the
+  model. Splitting by day, testing on later days, fitting all preprocessing on the
+  training days, and counting results in fault events rather than minutes all made the
+  results less flattering but more honest. A random split of minutes, or preprocessing
+  fitted on all days, would overstate how well the model works.
+- For **deploying** such a model, a fixed threshold is not enough: scores would need
+  to be recalibrated regularly, for example against a rolling window of recent data.
 
 ## References

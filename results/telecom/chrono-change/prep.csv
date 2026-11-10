@@ -1,0 +1,2 @@
+fold,series_raw,dropped_not_every_train_day,dropped_over_80pct_missing,series_kept,missing_after_ffill_train,missing_after_ffill_all
+chrono,2073,421,421,1231,0.012184087011463129,0.014373740108914764
